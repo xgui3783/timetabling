@@ -604,6 +604,7 @@ app.get('/', function (req,res){
 });
 */
 app.get('/', function (req,res){
+	console.log('app.get fired');
 	res.sendfile('tt.html');
 });
 
