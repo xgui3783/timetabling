@@ -1,0 +1,498 @@
+
+
+
+/* filter modal */
+div.panel
+{
+opacity:0.5
+}
+	div.panel:hover
+	{
+	cursor:pointer;
+	opacity:1.0;
+	}
+
+div.panel.panel-primary
+{
+opacity:1.0;
+}
+	
+button.noselect
+{
+background-color:#fff;
+}
+/* navbar */
+#nav_name:hover
+{
+cursor:pointer;
+}
+
+/* modal_tutor_unit */
+div#id_addnewtutor
+{
+padding-top:10px;
+}
+
+div.modal_tutor_unit
+{
+background-color:#fafafa;
+border-bottom:1px dotted #ccc;
+padding: 10px 0;
+line-height:34px;
+}
+
+div.modal_tutor_unit:first-child
+{
+border-top:1px dotted #ccc;
+}
+
+div.modal_tutor_unit:hover
+{
+background-color:#eee;
+cursor:pointer;	
+}
+
+/* modal boxes tt */
+div.modal-input
+{
+	
+}
+
+div#rename_tt div.modal-body
+{
+height:80px;
+}
+
+div.modal_load_tt_unit
+{
+background-color:#fafafa;
+border-bottom:1px dotted #ccc;
+padding: 10px 0;
+}
+
+div.modal_load_tt_unit:first-child
+{
+border-top:1px dotted #ccc;
+}
+
+div.modal_load_tt_unit:hover
+{
+background-color:#eee;
+cursor:pointer;	
+}
+
+div.activett
+{
+background-color:#fff;
+}
+
+/* edit box pop out styling */
+
+div.spacer
+{
+height:80px;
+}
+
+textarea
+{
+resize:none;
+}
+
+div#id_body_container
+{
+position:relative;
+}
+
+	div#id_screen_container
+	{
+	position:absolute;
+	left:0;
+	top:0;
+	z-index:3;
+	width:100%;
+	height:100%;
+	display:none;
+	}
+
+		div#id_screen_container div#id_screen
+		{
+		background-color:#999;
+		opacity:0.7;
+		width:100%;
+		height:100%;
+		}
+		
+	div#id_screen_container div#id_edit_block_popup
+	{
+	position:absolute;
+	top:0;
+	left:0;
+	background-color:#fff;
+	border-top: 1px solid #ebebeb;
+	border-left: 1px solid #ebebeb;
+	border-bottom: 5px solid #444;
+	border-right: 5px solid #444;
+	border-radius:10px;
+	}
+
+/* scaffold */
+#id_scaffold_overlay_wrapper
+{
+height:100%;
+position:relative;
+}
+
+	#id_table_scaffold_wrapper
+	{
+	}
+
+		#id_table_scaffold_wrapper div.scaffold_parent
+		{
+		display:inline-block;
+		margin:0;
+		padding:0;	
+		}
+
+		#id_table_scaffold_wrapper div.scaffold_parent:not(:first-child) table
+		{
+		border-left:1px solid #eee;	
+		}
+
+		#id_table_scaffold_wrapper div.scaffold_parent:nth-child(even) table
+		{
+		background-color:#f9f9f9;
+		}
+
+			#id_table_scaffold_wrapper div.scaffold_parent table tr:first-child
+			{
+			border-top:none;
+			}
+
+			#id_table_scaffold_wrapper div.scaffold_parent table tr:first-child th
+			{
+			border-top:none;
+			}
+
+.scaffold tr th,td:nth-child(1)
+{
+text-align:center;
+}
+
+.scaffold tr:nth-child(even)
+{
+border-top:2px solid #ccc;
+}
+.scaffold tr:nth-child(odd)
+{
+border-top:2px solid #eee;
+}
+
+
+/* overlay */
+#id_table_scaffold_overlay
+{
+	width:100%;
+	height:100%;
+	position:absolute;
+	top:0;
+	left:0;
+}
+
+#id_table_scaffold_overlay div
+{
+	height:100%;
+}
+
+/* styling of the block */
+
+div#hoverinfo
+{
+width:200px;
+height:140px;
+position:absolute;
+display:none;
+background-color:#fff;
+z-index:50;
+opacity:0.8;
+overflow:hidden;
+}
+
+	div#hoverinfo span
+	{
+	display:inline-block;
+	box-sizing:border-box;
+	}
+	
+	div#hoverinfo span:nth-child(1)
+	{
+	padding: 10px 0 0 0;
+	font-size:24px;
+	background-color:rgba(255,255,255,0.9);
+	color:#222;
+	text-align:left;
+	width:100%;
+	}
+	
+	div#hoverinfo span:nth-child(2)
+	{
+	margin-left:20px;
+	padding-left:5px;
+	font-size:14px;
+	background-color:rgba(255,255,255,0.7);
+	color:#000;
+	text-align:left;
+	width:100%;
+	}
+	
+	div#hoverinfo span:nth-child(3)
+	{
+	margin-left:20px;
+	padding-left:5px;
+	font-size:14px;
+	background-color:rgba(255,255,255,0.5);
+	color:#000;
+	text-align:left;
+	width:100%;
+	}
+	
+	/* no need to show day and time */
+	div#hoverinfo span:nth-child(4)
+	{
+	color:#fff;
+	width:50%;
+	display:none;
+	}
+	
+	div#hoverinfo span:nth-child(5)
+	{
+	color:#fff;
+	width:20%;
+	display:none;
+	}
+
+	div#hoverinfo span:nth-child(6)
+	{
+	color:#fff;
+	width:20%;
+	display:none;
+	}
+	/* no need to show day and time */
+	
+	div#hoverinfo span:nth-child(7)
+	{
+	margin-left:20px;
+	padding-left:5px;
+	font-size:14px;
+	background-color:rgba(255,255,255,0.3);
+	color:#000;
+	text-align:left;
+	width:100%;
+	}
+	div#hoverinfo span:nth-child(8)
+	{
+	margin-left:20px;
+	padding-left:5px;
+	font-size:14px;
+	background-color:rgba(255,255,255,0.1);
+	color:#fff;
+	text-align:left;
+	width:100%;
+	}
+
+div.noshow
+{
+display:none;
+}
+
+div.inprogress
+{
+opacity:0.7;
+position:absolute;
+background-color:#53599c;
+border-radius:2px;
+overflow:hidden;
+border: 1px solid #ebebeb;
+}
+
+	div.inprogress span
+	{
+	display:inline-block;
+	box-sizing:border-box;
+	}
+	
+		div.inprogress span:hover
+		{
+		cursor:default;
+		}
+	
+	div.inprogress span:nth-child(1)
+	{
+	padding: 10px 0 0 0;
+	font-size:24px;
+	background-color:rgba(255,255,255,0.9);
+	color:#222;
+	text-align:left;
+	width:100%;
+	}
+	
+	div.inprogress span:nth-child(2)
+	{
+	margin-left:20px;
+	padding-left:5px;
+	font-size:14px;
+	background-color:rgba(255,255,255,0.7);
+	color:#000;
+	text-align:left;
+	width:100%;
+	}
+	
+	div.inprogress span:nth-child(3)
+	{
+	margin-left:20px;
+	padding-left:5px;
+	font-size:14px;
+	background-color:rgba(255,255,255,0.5);
+	color:#000;
+	text-align:left;
+	width:100%;
+	}
+	
+	/* no need to show day and time */
+	div.inprogress span:nth-child(4)
+	{
+	color:#fff;
+	width:50%;
+	display:none;
+	}
+	
+	div.inprogress span:nth-child(5)
+	{
+	color:#fff;
+	width:20%;
+	display:none;
+	}
+
+	div.inprogress span:nth-child(6)
+	{
+	color:#fff;
+	width:20%;
+	display:none;
+	}
+	/* no need to show day and time */
+	
+	div.inprogress span:nth-child(7)
+	{
+	margin-left:20px;
+	padding-left:5px;
+	font-size:14px;
+	background-color:rgba(255,255,255,0.3);
+	color:#ccc;
+	text-align:left;
+	width:100%;
+	}
+	div.inprogress span:nth-child(8)
+	{
+	margin-left:20px;
+	padding-left:5px;
+	font-size:14px;
+	background-color:rgba(255,255,255,0.1);
+	color:#fff;
+	text-align:left;
+	width:100%;
+	}
+	
+div.lessonblock
+{
+position:absolute;
+background-color:#53599c;
+border-radius:2px;
+overflow:hidden;
+border: 1px solid #ebebeb;
+}
+
+	div.lessonblock span
+	{
+	display:inline-block;
+	box-sizing:border-box;
+	}
+	
+		div.lessonblock span:hover
+		{
+		cursor:default;
+		}
+	
+	div.lessonblock span:nth-child(1)
+	{
+	padding: 10px 0 0 0;
+	font-size:24px;
+	background-color:rgba(255,255,255,0.9);
+	color:#222;
+	text-align:left;
+	width:100%;
+	}
+	
+	div.lessonblock span:nth-child(2)
+	{
+	margin-left:20px;
+	padding-left:5px;
+	font-size:14px;
+	background-color:rgba(255,255,255,0.7);
+	color:#000;
+	text-align:left;
+	width:100%;
+	}
+	
+	div.lessonblock span:nth-child(3)
+	{
+	margin-left:20px;
+	padding-left:5px;
+	font-size:14px;
+	background-color:rgba(255,255,255,0.5);
+	color:#000;
+	text-align:left;
+	width:100%;
+	}
+	
+	/* no need to show day and time */
+	div.lessonblock span:nth-child(4)
+	{
+	color:#fff;
+	width:50%;
+	display:none;
+	}
+	
+	div.lessonblock span:nth-child(5)
+	{
+	color:#fff;
+	width:20%;
+	display:none;
+	}
+
+	div.lessonblock span:nth-child(6)
+	{
+	color:#fff;
+	width:20%;
+	display:none;
+	}
+	/* no need to show day and time */
+	
+	div.lessonblock span:nth-child(7)
+	{
+	margin-left:20px;
+	padding-left:5px;
+	font-size:14px;
+	background-color:rgba(255,255,255,0.3);
+	color:#ccc;
+	text-align:left;
+	width:100%;
+	}
+	div.lessonblock span:nth-child(8)
+	{
+	margin-left:20px;
+	padding-left:5px;
+	font-size:14px;
+	background-color:rgba(255,255,255,0.1);
+	color:#fff;
+	text-align:left;
+	width:100%;
+	}

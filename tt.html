@@ -1,0 +1,667 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<title>Generation Education Timetabling</title>
+
+	<!-- can be delivered by CDN -->
+	<script src = "/includes/jquery-2.2.3.min.js"></script>
+	<link rel = "stylesheet" href = "/includes/bootstrap.min.css">
+	<script src = "/includes/angular.min.js"></script>
+	<script src = "/includes/bootstrap.min.js"></script>
+	<script src = "/socket.io/socket.io.js"></script>
+
+	<!-- project specific -->
+	<link rel = "stylesheet" href = "/includes/css.css">
+	<script src = "/includes/js.js"></script>
+	
+	<script src = "/includes/jquery.sha256.min.js"></script>
+</head>
+
+<body>
+	<div id = "hoverinfo">
+	</div>
+	
+	<div id = "modal_login" class = "modal fade" role = "dialog">
+		<div class = "modal-dialog">
+			<div class = "modal-content">
+				<div class = "modal-header">
+					<button type="button" class="close" data-dismiss="modal">&times;</button>
+					<h4 class="modal-title">Login Form</h4>
+				</div>
+				<div class = "modal-body">
+					<div class = "form-horizontal" role = "form">
+						<div class = "form-group">
+							<label class = "control-label col-xs-3" for = "id_login_email">e-mail:</label>
+							<div class = "col-xs-5">
+								<input type = "text" class = "form-control" id = "id_login_email" data-placement = "right" title = "Please enter your registered e-mail address." placeholder = "e.g. johnsmith@example.com">
+							</div>
+						</div>
+						<div class = "form-group">
+							<label class = "control-label col-xs-3" for = "id_login_pswd">password:</label>
+							<div class = "col-xs-5">
+								<input type = "password" class = "form-control" id = "id_login_pswd" data-placement = "right" title = "Please enter a password." placeholder = "Type your password here.">
+							</div>
+						</div>
+					</div>
+				</div>
+				<div class = "modal-footer">
+					<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+					<button type="button" class="btn btn-success">Login</button>
+				</div>
+			</div>
+		</div>
+	</div>
+	
+	
+	<div id = "nav_tt" class = "modal fade" role = "dialog">
+		<div class = "modal-dialog">
+			<div class = "modal-content">
+				<div class = "modal-header">
+					<button type="button" class="close" data-dismiss="modal">&times;</button>
+					<h4 class="modal-title">Modal Title</h4>
+				</div>
+				<div class = "modal-body">
+					<div class = "well">
+						<div id = "modal_tt" class = "row">
+						</div>
+					</div>
+				</div>
+				<div class = "modal-footer">
+				</div>
+			</div>
+		</div>
+	</div>
+	
+	<div id = "modal_tutor" class = "modal fade" role = "dialog">
+		<div class = "modal-dialog">
+			<div class = "modal-content">
+				<div class = "modal-header">
+					<button type="button" class="close" data-dismiss="modal">&times;</button>
+					<h4 class="modal-title">Tutors</h4>
+				</div>
+				<div class = "modal-body">
+					<div class = "well">
+						<div id = "modal_tutor_row" class = "row">
+						</div>
+					</div>
+				</div>
+				<div class = "modal-footer">
+					<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+				</div>
+			</div>
+		</div>
+	</div>
+	
+	
+	<div id = "modal_edit_tutor" class = "modal fade" role = "dialog">
+		<div class = "modal-dialog">
+			<div class = "modal-content">
+				<div class = "modal-header">
+					<button type="button" class="close" data-dismiss="modal">&times;</button>
+					<h4 class="modal-title">Modal Title</h4>
+				</div>
+				<div class = "modal-body">
+					<form class = "form-horizontal" role="form">
+						<h4>Details</h4><input style = "display:none;" type = "text" id = "id_tutormodal_hashed_id" disabled>
+						<div class = "form-group">
+							<label class = "control-label col-xs-3" for = "id_tutormodal_name">Name:</label>
+							<div class = "col-xs-5">
+								<input type = "text" class = "form-control" id = "id_tutormodal_name" placeholder = "e.g. John Smith">
+							</div>
+						</div>
+						<div class = "form-group">
+							<label class = "control-label col-xs-3" for = "id_tutormodal_email">Email:</label>
+							<div class = "col-xs-5">
+								<input type = "email" class = "form-control" id = "id_tutormodal_email" placeholder = "Enter your e-mail address here.">
+								
+							</div>
+						</div>
+						<div class = "form-group">
+							<label class = "control-label col-xs-3" for = "id_tutormodal_mobile">Mobile:</label>
+							<div class = "col-xs-5">
+								<input type = "text" class = "form-control" id = "id_tutormodal_mobile" placeholder = "Enter your mobile number here.">
+							</div>
+						</div>
+						<hr>
+						<h4><a href = "#pswd_block" data-toggle = "collapse">Password</a></h4>
+						<div id = "pswd_block">
+							<div class = "form-group">
+								<label class = "control-label col-xs-3" for = "id_tutormodal_mobile">Old:</label>
+								<div class = "col-xs-5">
+									<input type = "password" class = "form-control" id = "id_tutormodal_oldpswd" placeholder = "Enter your old password.">
+								</div>
+							</div>
+							<div class = "form-group">
+								<label class = "control-label col-xs-3" for = "id_tutormodal_mobile">New:</label>
+								<div class = "col-xs-5">
+									<input type = "password" class = "form-control" id = "id_tutormodal_newpswd" placeholder = "Enter your new password.">
+								</div>
+							</div>
+							<div class = "form-group">
+								<label class = "control-label col-xs-3" for = "id_tutormodal_mobile">Re-enter:</label>
+								<div class = "col-xs-5">
+									<input type = "password" class = "form-control" id = "id_tutormodal_newpswd_reenter" placeholder = "Re-enter your new password.">
+								</div>
+							</div>
+							<hr>
+						</div>
+					</form>
+				</div>
+				<div class = "modal-footer">
+					<button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+					<button type="button" class="btn btn-success">Save</button>
+				</div>
+			</div>
+		</div>
+	</div>
+	
+	<div id = "modal_filter" class = "modal fade" role = "dialog">
+		<div class = "modal-dialog">
+			<div class = "modal-content">
+				<div class = "modal-header">
+					<button type="button" class="close" data-dismiss="modal">&times;</button>
+					<h4 class="modal-title">Filter</h4>
+				</div>
+				<div class = "modal-body">
+					<div id = "panel_class" class = "panel panel-primary">
+						<div class = "panel-heading">
+						By Class
+						</div>
+						<div class = "panel-body">
+						</div>
+						<div class = "panel-footer">
+							<button type="button" class="btn btn-default">Select All</button>
+							<button type="button" class="btn btn-default">Select None</button>
+						</div>
+					</div>
+					<div id = "panel_tutor" class = "panel panel-default">
+						<div class = "panel-heading">
+						By Tutor
+						</div>
+						<div class = "panel-body">
+						</div>
+						<div class = "panel-footer">
+							<button type="button" class="btn btn-default">Select All</button>
+							<button type="button" class="btn btn-default">Select None</button>
+						</div>
+					</div>
+					<div id = "panel_location" class = "panel panel-default">
+						<div class = "panel-heading">
+						By Location
+						</div>
+						<div class = "panel-body">
+						</div>
+						<div class = "panel-footer">
+							<button type="button" class="btn btn-default">Select All</button>
+							<button type="button" class="btn btn-default">Select None</button>
+						</div>
+					</div>
+				</div>
+				<div class = "modal-footer">
+				</div>
+			</div>
+		</div>
+	</div>
+	
+	
+	<div id = "modal_warning" class = "modal fade" role = "dialog">
+		<div class = "modal-dialog">
+			<div class = "modal-content">
+				<div class = "modal-header">
+					<button type="button" class="close" data-dismiss="modal">&times;</button>
+					<h4 class="modal-title">Modal Title</h4>
+				</div>
+				<div class = "modal-body">
+				</div>
+				<div class = "modal-footer">
+					<button type="button" class="btn btn-default" data-dismiss="modal">OK</button>
+				</div>
+			</div>
+		</div>
+	</div>
+	
+	<nav class = "navbar navbar-default">
+		<div class = "container-fluid">
+			<div class = "navbar-header">
+				<button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#collapse_navbar">
+					<span class="icon-bar"></span>
+					<span class="icon-bar"></span>
+					<span class="icon-bar"></span> 
+				</button>
+				<a class = "navbar-brand" id = "nav_name">Timetable Name</a>
+			</div>
+			<div class="collapse navbar-collapse" id="collapse_navbar">
+				<ul class = "nav navbar-nav" id = "id_navbar_ttcontrol">
+					<li><a href = "#" id = "nav_new">New</a></li>
+					<li><a href = "#" id = "nav_saveacopy">Save A Copy</a></li>
+					<li><a href = "#" id = "nav_load">Load</a></li>
+					<li><a href = "#" id = "nav_filter">Filter</a></li>
+				</ul>
+				<ul class = "nav navbar-nav navbar-right">
+					<li><a href = "#" id = "nav_students">Students Profiles</a></li>
+					<li><a href = "#" id = "nav_profiles">Tutor Profile</a></li>
+					<li><a href = "#" id = "nav_login"><!--<span class="glyphicon glyphicon-log-in"></span>-->Login</a></li>
+				</ul>
+			</div>
+		</div>
+	</nav>
+	<div class = "container-fluid" id = "id_body_container">
+		<div class = "row" id = "id_scaffold_overlay_wrapper">
+			<div class = "col-xs-12 row" id = "id_table_scaffold_wrapper">
+				<div class = "scaffold_parent col-sm-2 col-md-1">
+					<table class = "table table-condensed scaffold" id = "id_table_scaffold">
+						<tr>
+							<th>&nbsp;</th>
+						</tr>
+						<tr>
+							<td>8am</td>
+						</tr>
+						<tr>
+							<td>&nbsp;</td>
+						</tr>
+						<tr>
+							<td>9am</td>
+						</tr>
+						<tr>
+							<td>&nbsp;</td>
+						</tr>
+						<tr>
+							<td>10am</td>
+						</tr>
+						<tr>
+							<td>&nbsp;</td>
+						</tr>
+						<tr>
+							<td>11am</td>
+						</tr>
+						<tr>
+							<td>&nbsp;</td>
+						</tr>
+						<tr>
+							<td>12noon</td>
+						</tr>
+						<tr>
+							<td>&nbsp;</td>
+						</tr>
+						<tr>
+							<td>1pm</td>
+						</tr>
+						<tr>
+							<td>&nbsp;</td>
+						</tr>
+						<tr>
+							<td>2pm</td>
+						</tr>
+						<tr>
+							<td>&nbsp;</td>
+						</tr>
+						<tr>
+							<td>3pm</td>
+						</tr>
+						<tr>
+							<td>&nbsp;</td>
+						</tr>
+						<tr>
+							<td>4pm</td>
+						</tr>
+						<tr>
+							<td>&nbsp;</td>
+						</tr>
+						<tr>
+							<td>5pm</td>
+						</tr>
+						<tr>
+							<td>&nbsp;</td>
+						</tr>
+						<tr>
+							<td>6pm</td>
+						</tr>
+						<tr>
+							<td>&nbsp;</td>
+						</tr>
+						<tr>
+							<td>7pm</td>
+						</tr>
+						<tr>
+							<td>&nbsp;</td>
+						</tr>
+						<tr>
+							<td>8pm</td>
+						</tr>
+						<tr>
+							<td>&nbsp;</td>
+						</tr>
+					</table>
+				</div>
+				
+				<div class = "scaffold_parent col-sm-10 col-md-1">
+					<table class = "table table-condensed scaffold" id = "id_monday_scaffold">
+						<tr><th>m</th></tr>
+						<tr><td>&nbsp;</td></tr>
+						<tr><td>&nbsp;</td></tr>
+						<tr><td>&nbsp;</td></tr>
+						<tr><td>&nbsp;</td></tr>
+						<tr><td>&nbsp;</td></tr>
+						<tr><td>&nbsp;</td></tr>
+						<tr><td>&nbsp;</td></tr>
+						<tr><td>&nbsp;</td></tr>
+						<tr><td>&nbsp;</td></tr>
+						<tr><td>&nbsp;</td></tr>
+						<tr><td>&nbsp;</td></tr>
+						<tr><td>&nbsp;</td></tr>
+						<tr><td>&nbsp;</td></tr>
+						<tr><td>&nbsp;</td></tr>
+						<tr><td>&nbsp;</td></tr>
+						<tr><td>&nbsp;</td></tr>
+						<tr><td>&nbsp;</td></tr>
+						<tr><td>&nbsp;</td></tr>
+						<tr><td>&nbsp;</td></tr>
+						<tr><td>&nbsp;</td></tr>
+						<tr><td>&nbsp;</td></tr>
+						<tr><td>&nbsp;</td></tr>
+						<tr><td>&nbsp;</td></tr>
+						<tr><td>&nbsp;</td></tr>
+						<tr><td>&nbsp;</td></tr>
+						<tr><td>&nbsp;</td></tr>
+					</table>
+				</div>
+				<div class = "scaffold_parent col-sm-10 col-md-1">
+					<table class = "table table-condensed scaffold" id = "id_monday_scaffold">
+						<tr><th>t</th></tr>
+						<tr><td>&nbsp;</td></tr>
+						<tr><td>&nbsp;</td></tr>
+						<tr><td>&nbsp;</td></tr>
+						<tr><td>&nbsp;</td></tr>
+						<tr><td>&nbsp;</td></tr>
+						<tr><td>&nbsp;</td></tr>
+						<tr><td>&nbsp;</td></tr>
+						<tr><td>&nbsp;</td></tr>
+						<tr><td>&nbsp;</td></tr>
+						<tr><td>&nbsp;</td></tr>
+						<tr><td>&nbsp;</td></tr>
+						<tr><td>&nbsp;</td></tr>
+						<tr><td>&nbsp;</td></tr>
+						<tr><td>&nbsp;</td></tr>
+						<tr><td>&nbsp;</td></tr>
+						<tr><td>&nbsp;</td></tr>
+						<tr><td>&nbsp;</td></tr>
+						<tr><td>&nbsp;</td></tr>
+						<tr><td>&nbsp;</td></tr>
+						<tr><td>&nbsp;</td></tr>
+						<tr><td>&nbsp;</td></tr>
+						<tr><td>&nbsp;</td></tr>
+						<tr><td>&nbsp;</td></tr>
+						<tr><td>&nbsp;</td></tr>
+						<tr><td>&nbsp;</td></tr>
+						<tr><td>&nbsp;</td></tr>
+					</table>
+				
+				</div>
+				<div class = "scaffold_parent col-sm-10 col-md-1">
+					<table class = "table table-condensed scaffold" id = "id_monday_scaffold">
+						<tr><th>w</th></tr>
+						<tr><td>&nbsp;</td></tr>
+						<tr><td>&nbsp;</td></tr>
+						<tr><td>&nbsp;</td></tr>
+						<tr><td>&nbsp;</td></tr>
+						<tr><td>&nbsp;</td></tr>
+						<tr><td>&nbsp;</td></tr>
+						<tr><td>&nbsp;</td></tr>
+						<tr><td>&nbsp;</td></tr>
+						<tr><td>&nbsp;</td></tr>
+						<tr><td>&nbsp;</td></tr>
+						<tr><td>&nbsp;</td></tr>
+						<tr><td>&nbsp;</td></tr>
+						<tr><td>&nbsp;</td></tr>
+						<tr><td>&nbsp;</td></tr>
+						<tr><td>&nbsp;</td></tr>
+						<tr><td>&nbsp;</td></tr>
+						<tr><td>&nbsp;</td></tr>
+						<tr><td>&nbsp;</td></tr>
+						<tr><td>&nbsp;</td></tr>
+						<tr><td>&nbsp;</td></tr>
+						<tr><td>&nbsp;</td></tr>
+						<tr><td>&nbsp;</td></tr>
+						<tr><td>&nbsp;</td></tr>
+						<tr><td>&nbsp;</td></tr>
+						<tr><td>&nbsp;</td></tr>
+						<tr><td>&nbsp;</td></tr>
+					</table>
+				
+				</div>
+				<div class = "scaffold_parent col-sm-10 col-md-1">
+					<table class = "table table-condensed scaffold" id = "id_monday_scaffold">
+						<tr><th>t</th></tr>
+						<tr><td>&nbsp;</td></tr>
+						<tr><td>&nbsp;</td></tr>
+						<tr><td>&nbsp;</td></tr>
+						<tr><td>&nbsp;</td></tr>
+						<tr><td>&nbsp;</td></tr>
+						<tr><td>&nbsp;</td></tr>
+						<tr><td>&nbsp;</td></tr>
+						<tr><td>&nbsp;</td></tr>
+						<tr><td>&nbsp;</td></tr>
+						<tr><td>&nbsp;</td></tr>
+						<tr><td>&nbsp;</td></tr>
+						<tr><td>&nbsp;</td></tr>
+						<tr><td>&nbsp;</td></tr>
+						<tr><td>&nbsp;</td></tr>
+						<tr><td>&nbsp;</td></tr>
+						<tr><td>&nbsp;</td></tr>
+						<tr><td>&nbsp;</td></tr>
+						<tr><td>&nbsp;</td></tr>
+						<tr><td>&nbsp;</td></tr>
+						<tr><td>&nbsp;</td></tr>
+						<tr><td>&nbsp;</td></tr>
+						<tr><td>&nbsp;</td></tr>
+						<tr><td>&nbsp;</td></tr>
+						<tr><td>&nbsp;</td></tr>
+						<tr><td>&nbsp;</td></tr>
+						<tr><td>&nbsp;</td></tr>
+					</table>
+				
+				</div>
+				<div class = "scaffold_parent col-sm-10 col-md-1">
+					<table class = "table table-condensed scaffold" id = "id_monday_scaffold">
+						<tr><th>f</th></tr>
+						<tr><td>&nbsp;</td></tr>
+						<tr><td>&nbsp;</td></tr>
+						<tr><td>&nbsp;</td></tr>
+						<tr><td>&nbsp;</td></tr>
+						<tr><td>&nbsp;</td></tr>
+						<tr><td>&nbsp;</td></tr>
+						<tr><td>&nbsp;</td></tr>
+						<tr><td>&nbsp;</td></tr>
+						<tr><td>&nbsp;</td></tr>
+						<tr><td>&nbsp;</td></tr>
+						<tr><td>&nbsp;</td></tr>
+						<tr><td>&nbsp;</td></tr>
+						<tr><td>&nbsp;</td></tr>
+						<tr><td>&nbsp;</td></tr>
+						<tr><td>&nbsp;</td></tr>
+						<tr><td>&nbsp;</td></tr>
+						<tr><td>&nbsp;</td></tr>
+						<tr><td>&nbsp;</td></tr>
+						<tr><td>&nbsp;</td></tr>
+						<tr><td>&nbsp;</td></tr>
+						<tr><td>&nbsp;</td></tr>
+						<tr><td>&nbsp;</td></tr>
+						<tr><td>&nbsp;</td></tr>
+						<tr><td>&nbsp;</td></tr>
+						<tr><td>&nbsp;</td></tr>
+						<tr><td>&nbsp;</td></tr>
+					</table>
+				
+				</div>
+				<div class = "scaffold_parent col-sm-10 col-md-3">
+					<table class = "table table-condensed scaffold" id = "id_monday_scaffold">
+						<tr><th>s</th></tr>
+						<tr><td>&nbsp;</td></tr>
+						<tr><td>&nbsp;</td></tr>
+						<tr><td>&nbsp;</td></tr>
+						<tr><td>&nbsp;</td></tr>
+						<tr><td>&nbsp;</td></tr>
+						<tr><td>&nbsp;</td></tr>
+						<tr><td>&nbsp;</td></tr>
+						<tr><td>&nbsp;</td></tr>
+						<tr><td>&nbsp;</td></tr>
+						<tr><td>&nbsp;</td></tr>
+						<tr><td>&nbsp;</td></tr>
+						<tr><td>&nbsp;</td></tr>
+						<tr><td>&nbsp;</td></tr>
+						<tr><td>&nbsp;</td></tr>
+						<tr><td>&nbsp;</td></tr>
+						<tr><td>&nbsp;</td></tr>
+						<tr><td>&nbsp;</td></tr>
+						<tr><td>&nbsp;</td></tr>
+						<tr><td>&nbsp;</td></tr>
+						<tr><td>&nbsp;</td></tr>
+						<tr><td>&nbsp;</td></tr>
+						<tr><td>&nbsp;</td></tr>
+						<tr><td>&nbsp;</td></tr>
+						<tr><td>&nbsp;</td></tr>
+						<tr><td>&nbsp;</td></tr>
+						<tr><td>&nbsp;</td></tr>
+					</table>
+				
+				</div>
+				<div class = "scaffold_parent col-sm-10 col-md-3">
+					<table class = "table table-condensed scaffold" id = "id_monday_scaffold">
+						<tr><th>s</th></tr>
+						<tr><td>&nbsp;</td></tr>
+						<tr><td>&nbsp;</td></tr>
+						<tr><td>&nbsp;</td></tr>
+						<tr><td>&nbsp;</td></tr>
+						<tr><td>&nbsp;</td></tr>
+						<tr><td>&nbsp;</td></tr>
+						<tr><td>&nbsp;</td></tr>
+						<tr><td>&nbsp;</td></tr>
+						<tr><td>&nbsp;</td></tr>
+						<tr><td>&nbsp;</td></tr>
+						<tr><td>&nbsp;</td></tr>
+						<tr><td>&nbsp;</td></tr>
+						<tr><td>&nbsp;</td></tr>
+						<tr><td>&nbsp;</td></tr>
+						<tr><td>&nbsp;</td></tr>
+						<tr><td>&nbsp;</td></tr>
+						<tr><td>&nbsp;</td></tr>
+						<tr><td>&nbsp;</td></tr>
+						<tr><td>&nbsp;</td></tr>
+						<tr><td>&nbsp;</td></tr>
+						<tr><td>&nbsp;</td></tr>
+						<tr><td>&nbsp;</td></tr>
+						<tr><td>&nbsp;</td></tr>
+						<tr><td>&nbsp;</td></tr>
+						<tr><td>&nbsp;</td></tr>
+						<tr><td>&nbsp;</td></tr>
+					</table>
+				
+				</div>
+				
+				
+				
+			</div>
+			
+			<div class = "col-xs-12 row" id = "id_table_scaffold_overlay">
+				<div class = "col-sm-2 col-md-1"></div>
+				<div class = "scaffold_overlay_unit col-sm-10 col-md-1"></div>
+				<div class = "scaffold_overlay_unit col-sm-10 col-md-1"></div>
+				<div class = "scaffold_overlay_unit col-sm-10 col-md-1"></div>
+				<div class = "scaffold_overlay_unit col-sm-10 col-md-1"></div>
+				<div class = "scaffold_overlay_unit col-sm-10 col-md-1"></div>
+				<div class = "scaffold_overlay_unit col-sm-10 col-md-3"></div>
+				<div class = "scaffold_overlay_unit col-sm-10 col-md-3"></div>
+			</div>
+			
+		</div>
+		<div class = "row" id = "id_screen_container">
+			<div id = "id_screen">
+			</div>
+			<div class = "container col-sm-12 col-md-5" id = "id_edit_block_popup">
+			<h2>Edit Class</h2>
+				<form role="form" class = "form-horizontal">
+					<div class = "form-group">
+						<label class = "control-label col-sm-3">Class Name</label>
+						<div class = "col-sm-9">
+							<input type = "text" class = "form-control" id = "id_classname" placeholder = "Class Name">
+						</div>
+					</div>
+					<div class = "form-group">
+						<label class = "control-label col-sm-3">Tutor Name</label>
+						<div class = "col-sm-5">
+							<select class = "form-control" id = "id_tutorname">
+								<option id = "id_notutorassigned">&nbsp;</option>
+							</select>
+							<!--<input type = "text" class = "form-control" id = "id_tutorname" placeholder = "Tutor Name">-->
+						</div>
+						<div class = "col-sm-4">
+							<div class = "btn btn-primary" id = "popup_addtutor">Add Tutor</div>
+						</div>
+					</div>
+					<div class = "form-group">
+						<label class = "control-label col-sm-3">Location</label>
+						<div class = "col-sm-3">
+							<input type = "text" class = "form-control" id = "id_location" placeholder = "Location">
+						</div>
+					</div>
+					<hr>
+					<div class = "row">
+						<div class = "col-sm-6">
+							<div class = "form-group">
+								<label class = "control-label col-sm-6">Day</label>
+								<div class = "col-sm-6">
+									<select class = "form-control" id = "id_day">
+										<option id = "id_day_1">Mon</option>
+										<option id = "id_day_2">Tue</option>
+										<option id = "id_day_3">Wed</option>
+										<option id = "id_day_4">Thu</option>
+										<option id = "id_day_5">Fri</option>
+										<option id = "id_day_6">Sat</option>
+										<option id = "id_day_7">Sun</option>
+									</select>
+									
+								</div>
+							</div>
+						</div>
+						<div class = "col-sm-6">
+							<div class = "form-group">
+								<label class = "control-label col-sm-6" for="id_starttime">Start Time</label>
+								<div class = "col-sm-6">
+									<input type = "text" class = "form-control" id = "id_starttime" placeholder = "Start Time">
+								</div>
+							</div>
+							<div class = "form-group">
+								<label class = "control-label col-sm-6" for="id_endtime">End Time</label>
+								<div class = "col-sm-6">
+									<input type = "text" class = "form-control" id = "id_endtime" placeholder = "End Time">
+								</div>
+							</div>
+						</div>
+					</div>
+					<hr>
+					<div class = "form-group">
+						<label class = "control-label col-sm-3">Students</label>
+						<div class = "col-sm-9">
+							<textarea type = "text" class = "form-control" id = "id_students" rows = "2" placeholder = "Students"></textarea>
+						</div>
+					</div>
+					<div class = "form-group">
+						<label class = "control-label col-sm-3">Notes</label>
+						<div class = "col-sm-9">
+							<textarea type = "text" class = "form-control" id = "id_notes" rows = "4" placeholder = "Notes"></textarea>
+						</div>
+					</div>
+					<hr>
+					<button type="button" class="btn btn-danger col-sm-2 col-sm-offset-1" id = "delete_button">Delete</button>
+					
+					<button type="button" class="btn btn-default col-sm-2 col-sm-offset-4" id = "cancel_button">Cancel</button>
+					<button type="button" class="btn btn-success col-sm-2 col-sm-offset-1" id = "save_button">Save</button>
+				</form>
+				<div class = "spacer"></div>
+			</div>
+		</div>
+	</div>
+	
+</body>
+
+</html>
