@@ -1,5 +1,5 @@
-var socket = io('http://timetable-gened.rhcloud.com:8000/',function(){
-	
+var socket = io.connect('http://timetable-gened.rhcloud.com:8000/',function(){
+	'forceNew':true;
 });
 
 $(document).ready(function(){
