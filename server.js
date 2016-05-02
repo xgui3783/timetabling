@@ -10,7 +10,7 @@ var sha256 = require('js-sha256');
 var dbname = 'timetable';
 
 var connection = mysql.createConnection({
-	host	:'localhost',
+	host	:'127.0.0.1',
 	user	:'adminsrCNFym',
 	password	:'9gPQRXKgSdbH',
 	database	:dbname
@@ -19,6 +19,9 @@ var connection = mysql.createConnection({
 io.on('connection',function(socket){
 	
 	console.log("an anonymous user has connected");
+	cnonection.query('SELECT * FROM tutor_db',function(e,r){
+		if(e){console.log(e)}else{console.log(r[0])}
+	})
 	
 	socket.on('disconnect',function(){
 		if(socket.name==undefined){
@@ -29,6 +32,7 @@ io.on('connection',function(socket){
 	});
 	
 	socket.on('login',function(i,callback){
+		console.log('socket on login fired');
 		connection.query('SELECT hashed_id,name, salt, pswd_encrypt, admin FROM tutor_db WHERE email = ?',i.usr,function(e,r){
 			if(e){
 				socket.emit('server_to_client_update_failed', 'Err530 db failed. Trace: '+e);

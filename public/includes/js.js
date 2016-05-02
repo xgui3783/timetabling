@@ -54,6 +54,7 @@ $(document).ready(function(){
 						'usr'	:$('#modal_login #id_login_email').val(),
 						'pswd'	:$.sha256($('#modal_login #id_login_pswd').val())
 						}
+					console.log('btn success clicked');
 					socket.emit('login',json,function(o){
 						if(o.message=='login ok'){
 							/* login ok */
