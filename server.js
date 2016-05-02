@@ -19,7 +19,7 @@ var connection = mysql.createConnection({
 io.on('connection',function(socket){
 	
 	console.log("an anonymous user has connected");
-	cnonection.query('SELECT * FROM tutor_db',function(e,r){
+	connection.query('SELECT * FROM tutor_db',function(e,r){
 		if(e){console.log(e)}else{console.log(r[0])}
 	})
 	
