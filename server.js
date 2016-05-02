@@ -10,7 +10,7 @@ var sha256 = require('js-sha256');
 var dbname = 'timetable';
 
 var connection = mysql.createConnection({
-	host	:'127.0.0.1',
+	host	:'127.7.51.130',
 	user	:'adminsrCNFym',
 	password	:'9gPQRXKgSdbH',
 	database	:dbname
