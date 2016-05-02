@@ -7,11 +7,12 @@ var io = require('socket.io')(server);
 var mysql = require('mysql');
 var sha256 = require('js-sha256');
 
-var dbname = 'nodejs';
+var dbname = 'timetable';
+
 var connection = mysql.createConnection({
 	host	:'localhost',
-	user	:'root',
-	password	:'',
+	user	:'adminsrCNFym',
+	password	:'9gPQRXKgSdbH',
 	database	:dbname
 });
 
