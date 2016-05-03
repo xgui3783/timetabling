@@ -8,6 +8,7 @@ var mysql = require('mysql');
 var sha256 = require('js-sha256');
 
 var dbname = 'nodejs';
+
 var connection = mysql.createConnection({
 	host	:'localhost',
 	user	:'root',

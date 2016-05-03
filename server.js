@@ -1,16 +1,18 @@
 #!/bin/env node
 
+var http = require('http');
+
 var express = require('express');
 var app = require('express')();
-var server = require('http').createServer(app);
-var io = require('socket.io')(server);
+var server = http.createServer(app);
+var io = require('socket.io').listen(server);
 var mysql = require('mysql');
 var sha256 = require('js-sha256');
 
 var dbname = 'timetable';
 
 var connection = mysql.createConnection({
-	host	:'127.7.51.130',
+	host	:'127.7.51.130', /* process.env.OPENSHIFT_MYSQL_DB_HOST, */
 	user	:'adminsrCNFym',
 	password	:'9gPQRXKgSdbH',
 	database	:dbname
@@ -19,9 +21,6 @@ var connection = mysql.createConnection({
 io.on('connection',function(socket){
 	
 	console.log("an anonymous user has connected");
-	connection.query('SELECT * FROM tutor_db',function(e,r){
-		if(e){console.log(e)}else{console.log(r[0])}
-	})
 	
 	socket.on('disconnect',function(){
 		if(socket.name==undefined){
@@ -32,7 +31,6 @@ io.on('connection',function(socket){
 	});
 	
 	socket.on('login',function(i,callback){
-		console.log('socket on login fired');
 		connection.query('SELECT hashed_id,name, salt, pswd_encrypt, admin FROM tutor_db WHERE email = ?',i.usr,function(e,r){
 			if(e){
 				socket.emit('server_to_client_update_failed', 'Err530 db failed. Trace: '+e);
@@ -185,7 +183,7 @@ io.on('connection',function(socket){
 		})
 	});
 	
-	socket.on('on_document_load',function(){
+	socket.on('on_document_load',function(callback){
 		/* on document load */
 		
 		connection.query('SELECT TABLE_NAME FROM information_schema.tables WHERE TABLE_SCHEMA = "' + dbname + '" AND TABLE_NAME = "tutor_db"',function(e,rows){
@@ -213,7 +211,11 @@ io.on('connection',function(socket){
 							socket.emit('server_to_client_update_failed', 'Err172 db failed. Likely due to database is down. Trace:'+e);		
 						}
 					});
-				}else{		
+				}else{
+					var o = {
+						'admin'	:socket.admin,
+						'name'	:socket.name};
+					callback(o);	
 					connection.query('SELECT name FROM tutor_db',function(e,r){
 						if(e){
 							socket.emit('server_to_client_update_failed', 'Err151 db failed. Likely due to database is down. Trace:'+e);
@@ -275,7 +277,7 @@ io.on('connection',function(socket){
 							socket.emit('server_to_client_update_failed', 'Err44. Select failed. Likely due to database is down. Trace:'+e);
 							//throw err;
 						}else{
-						io.to(tt_name).emit('server_to_all_update_block',j[0]);
+							io.to(tt_name).emit('server_to_all_update_block',j[0]);
 						}
 					})
 				}
@@ -602,17 +604,14 @@ function check_listener(socket,timetablename){
 
 app.use(express.static('public'));
 
-/*
 app.get('/', function (req,res){
-	res.sendfile('login.html');
-});
-*/
-app.get('/', function (req,res){
-	console.log('app.get fired');
 	res.sendfile('tt.html');
 });
+
 
 app.set('port', process.env.OPENSHIFT_NODEJS_PORT || process.env.PORT || 3002);
 app.set('ip', process.env.OPENSHIFT_NODEJS_IP || "127.0.0.1");
 
 server.listen(app.get('port'),app.get('ip'));
+
+//server.listen(3000);

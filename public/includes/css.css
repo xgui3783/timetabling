@@ -1,3 +1,8 @@
+/*  */
+body{
+overflow:hidden;
+}
+
 /* hidden for low level tutors/students */
 
 #id_navbar_ttcontrol li{
@@ -172,7 +177,7 @@ position:relative;
 
 		#id_table_scaffold_wrapper div.scaffold_parent:nth-child(even) table
 		{
-		background-color:#f9f9f9;
+		background-color:#eee;
 		}
 
 			#id_table_scaffold_wrapper div.scaffold_parent table tr:first-child
@@ -225,7 +230,7 @@ position:absolute;
 display:none;
 background-color:#fff;
 z-index:50;
-opacity:0.8;
+opacity:0.9;
 overflow:hidden;
 }
 
@@ -330,6 +335,12 @@ border: 1px solid #ebebeb;
 	{
 	display:inline-block;
 	box-sizing:border-box;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
 	}
 	
 		div.inprogress span:hover
@@ -398,7 +409,7 @@ border: 1px solid #ebebeb;
 	padding-left:5px;
 	font-size:14px;
 	background-color:rgba(255,255,255,0.3);
-	color:#ccc;
+	color:#000;
 	text-align:left;
 	width:100%;
 	}
@@ -426,6 +437,12 @@ border: 1px solid #ebebeb;
 	{
 	display:inline-block;
 	box-sizing:border-box;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
 	}
 	
 		div.lessonblock span:hover
@@ -494,7 +511,7 @@ border: 1px solid #ebebeb;
 	padding-left:5px;
 	font-size:14px;
 	background-color:rgba(255,255,255,0.3);
-	color:#ccc;
+	color:#000;
 	text-align:left;
 	width:100%;
 	}

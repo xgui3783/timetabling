@@ -1,8 +1,13 @@
-var socket = io.connect('http://timetable-gened.rhcloud.com:8000/',function(){
+/*var socket = io.connect('http://timetable-gened.rhcloud.com:8000/',function(){
 	//'forceNew':true,
 });
-
+*/
+var socket = io();
 $(document).ready(function(){
+	
+	$(window).resize(function(){
+		rearrange_blocks();
+	});
 	
 	$('#modal_warning')
 	.on('shown.bs.modal',function(){
@@ -54,7 +59,6 @@ $(document).ready(function(){
 						'usr'	:$('#modal_login #id_login_email').val(),
 						'pswd'	:$.sha256($('#modal_login #id_login_pswd').val())
 						}
-					console.log('btn success clicked');
 					socket.emit('login',json,function(o){
 						if(o.message=='login ok'){
 							/* login ok */
@@ -69,6 +73,7 @@ $(document).ready(function(){
 							switch(o.admin){
 								case 0:
 									$('#id_tutormodal_hashed_id').val(o.hashed_id);
+									$('#id_tutorname').prop('disabled',true);
 									tutor_lvl0_binding();							
 								break;
 								case 1:
@@ -373,6 +378,7 @@ function tutor_lvl1_binding(){
 			/* because populate_modal_filter unbinds click listeners, also resets the colours of nonactive panels */
 			populate_modal_filter();
 			$('.noshow').removeClass('noshow');
+			rearrange_blocks();
 			
 			$(this).children('div.panel-body').children('button').off('click').click(function(){
 				if($(this).parent().parent().hasClass('panel-primary')){
@@ -380,7 +386,7 @@ function tutor_lvl1_binding(){
 					modal_filter_button_click($(this));
 					update_lesson_blocks_tt();
 				}
-			})
+			});
 		}
 	});
 	
@@ -424,7 +430,10 @@ function tutor_lvl1_binding(){
 	});
 	
 	/* server.js will decide what is to be loaded, and what is not */
-	socket.emit('on_document_load');
+	socket.emit('on_document_load',function(o){
+		socket.admin = o.admin;
+		socket.name = o.name;
+	});
 	
 	socket.on('server_to_client_rearrange_blocks',function(){
 		rearrange_blocks();
@@ -433,10 +442,20 @@ function tutor_lvl1_binding(){
 	socket.on('server_to_all_update_block',function(i){
 		
 		//$('#'+i.hashed_id).remove(); //does not work somehow
-		$('div').remove('#'+i.hashed_id);
-		add_lesson_block(i);
 		
-		rearrange_blocks();
+		if(socket.admin==0){
+			if(i.tutorname==socket.name){
+				$('div').remove('#'+i.hashed_id);
+				add_lesson_block(i);
+				
+				rearrange_blocks();
+			}
+		}else if(socket.admin==1||socket.admin==2){		
+			$('div').remove('#'+i.hashed_id);
+			add_lesson_block(i);
+			
+			rearrange_blocks();
+		}
 	});
 	
 	socket.on('server_to_client_update_failed',function(err){
@@ -647,7 +666,19 @@ function tutor_lvl1_binding(){
 	/* block control */
 	
 	socket.on('append_tutor_slot',function(o){
-		$('#id_edit_block_popup #id_tutorname').append('<option>'+o+'</option>');
+		if(socket.admin==0&&socket.name==o){
+			$('#id_edit_block_popup #id_tutorname').append('<option>'+o+'</option>');
+		}else if (socket.admin==1||socket.admin==2){
+			$('#id_edit_block_popup #id_tutorname').append('<option>'+o+'</option>');			
+		}
+	});
+	
+	socket.on('append_admin0_tutor_slot',function(o){
+		console.log(socket.name);
+		console.log(socket.admin);
+		$('#id_edit_block_popup #id_tutorname')
+		.append('<option>'+o+'</option>');
+		$('#id_edit_block_popup #id_tutorname').val(o);
 	});
 	
 	$('#id_screen,#cancel_button').click(function(){
@@ -669,11 +700,7 @@ function tutor_lvl1_binding(){
 function tutor_lvl0_binding(){
 	
 	tutor_lvl1_binding();
-	
-	
 	$('#id_navbar_ttcontrol li').css('display','none');
-	
-	$('#id_tutorname').prop('disabled',true);
 }
 
 function check_same_pswd(){
@@ -808,6 +835,35 @@ function populate_modal_filter(){
 }
 
 function order_filter_button(i){
+	
+	$('#id_button_special').insertAfter($('#panel_class').children('div.panel-body').children('button:last-child'));
+	var bwrapper = $('#panel_class').children('div.panel-body');
+	for (i = 2; i<bwrapper.children('button').length;i++){
+		for (j=1;j<i;j++){
+			var mpiece = bwrapper.children('button:nth-child('+i+')');
+			var cpiece = bwrapper.children('button:nth-child('+j+')')
+			var moving = Number(bwrapper.children('button:nth-child('+i+')').html().substring(1));
+			var compare1 = Number(bwrapper.children('button:nth-child('+j+')').html().substring(1));
+			if (j==0&&moving<compare1){
+				mpiece.insertBefore(cpiece);
+				continue;
+			}else if (j==i-1){
+				if(moving>compare1){
+					mpiece.insertAfter(cpiece);
+				}else if (moving<compare1){
+					mpiece.insertBefore(cpiece);
+				}
+			}else{
+				var compare2 = Number(bwrapper.children('button:nth-child('+(j+1)+')').html().substring(1));
+				if(moving > compare1 && moving < compare2){
+					mpiece.insertAfter(cpiece);
+					continue;
+				}
+			}
+		}
+	}
+	
+	/*
 	$('#panel_class').children('div.panel-body').children('button:not(#id_button_special)').each(function(){
 		var b1 = $(this);
 		$('#panel_class').children('div.panel-body').children('button:not(#id_button_special)').each(function(){
@@ -820,8 +876,7 @@ function order_filter_button(i){
 				}
 			}
 		})
-	})
-	$('#id_button_special').insertAfter($('#panel_class').children('div.panel-body').children('button:last-child'));
+	});
 	
 	var a=['tutor','location'];
 	for (i=0;i<a.length;i++){
@@ -839,6 +894,8 @@ function order_filter_button(i){
 			});
 		});
 	}
+	*/
+	
 	$('#id_button_notutorassigned').insertAfter($('#panel_tutor').children('div.panel-body').children('button:last-child'));
 	$('#id_button_NoLocationAssigned').insertAfter($('#panel_location').children('div.panel-body').children('button:last-child'));
 	
@@ -1374,7 +1431,7 @@ function bind_fn_creating_blocks(){
 			$(document).off('mouseup');
 			$(document).off('mousemove');
 		});
-	});
+	});	
 }
 
 function populate_edit_block(){
@@ -1385,6 +1442,11 @@ function populate_edit_block(){
 		}else{
 		}
 	});
+	
+	/* if there is only 1 option in select tutors, then select it. This is either because a tutor with lvl0admin is logged in, or there really is only 1 tutor in the db  */
+	if($('#id_tutorname option').length==2){
+		$('#id_tutorname option:last-child').prop('selected',true);
+	}
 }
 
 function call_editblock(){
@@ -1392,10 +1454,10 @@ function call_editblock(){
 	/* shows edit block dialogue */
 	$('#id_screen_container').css('display','block');
 	
-	
 	$('#id_screen,#id_edit_block_popup').css('opacity','0.0');
 	$('#id_screen').animate({'opacity':'0.7'},200);
 	$('#id_edit_block_popup').animate({'opacity':'1.0'},400);
+
 	
 	/* position the dialogue */
 	if($('.activeblock').parent().index()<6){
@@ -1494,6 +1556,33 @@ function round_off_offsetY(i){
 function rearrange_blocks(){
 	$('div#id_table_scaffold_overlay').children('div').each(function(){
 		var dayblock = $(this);
+		
+		for (i = 2;i<dayblock.children('div:not(.noshow)').length+1;i++){
+			moving = parseInt(dayblock.children('div:not(.noshow):nth-child('+i+')').css('top'));
+			mpiece = dayblock.children('div:not(.noshow):nth-child('+i+')');
+			for (j = 1; j<i; j++){
+				compare1 = parseInt(dayblock.children('div:not(.noshow):nth-child('+j+')').css('top'));
+				cpiece = dayblock.children('div:not(.noshow):nth-child('+j+')');
+				if (j==1&&moving < compare1){
+					mpiece.insertBefore(cpiece);
+					continue;
+				}else if (j==i-1){
+					if(moving>=cpiece){
+						mpiece.insertAfter(cpiece);
+					}else if (moving<cpiece){
+						mpiece.insertBefore(cpiece);
+					}
+				}else{
+					compare2 = parseInt(dayblock.children('div:not(.noshow):nth-child('+(j+1)+')').css('top'));
+					if(moving>=compare1&&moving<compare2){
+						mpiece.insertAfter(cpiece);
+						continue;
+					}
+				}
+			}
+		}
+		
+		/*
 		dayblock.children('div:not(.noshow)').each(function(){
 			var block1 = $(this);
 			dayblock.children('div:not(.noshow)').each(function(){
@@ -1503,10 +1592,11 @@ function rearrange_blocks(){
 				}else if (parseInt(block1.css('top')) < parseInt(block2.css('top'))){
 					block1.insertAfter(block2);
 				}else{
-					/* this will get triggered multiple times, as the .each loop will loop though the same block multiple times */
+					/* this will get triggered multiple times, as the .each loop will loop though the same block multiple times
 				}
 			})
 		});
+		*/
 	});
 	resize_blocks();
 }
@@ -1530,33 +1620,38 @@ function resize_blocks(){
 				max_concurr=timeslot_concurr;
 			}
 		});
-		dayblock.children('div:not(.noshow)').css('width',100/max_concurr+'%');
+		dayblock.children('div:not(.noshow)').css('width',90/max_concurr+'%');
 	});	
 	stagger_blocks();
 }
 
 function stagger_blocks(){
-	$('div.lessonblock').css('left','1px');
+	$('div.lessonblock').css('left','0px');
 	$('div#id_table_scaffold_overlay').children('div').each(function(){
 		var dayblock = $(this);
-		dayblock.children('div:not(.noshow)').each(function(){
-			var focusblock = $(this);
-			var focusblocktop = parseInt(focusblock.css('top'));
-			var focusblockwidth = parseInt(focusblock.css('width'));
-			var focusblockbottom = focusblocktop + parseInt(focusblock.css('height'));
-			var focusblockleft = 0;
-			dayblock.children('div').each(function(){
-				var compareblock = $(this);
-				var compareblockleft = parseInt(compareblock.css('left'));
-				var compareblocktop = parseInt(compareblock.css('top'));
-				var compareblockbottom = compareblocktop+parseInt(compareblock.css('height'));
-				
-				if ((focusblock!=compareblock)&&(compareblockleft==focusblockleft)&&((focusblocktop>=compareblocktop)&&(focusblocktop<compareblockbottom)||(focusblocktop<compareblocktop)&&(focusblockbottom>compareblocktop))){
-					focusblockleft += focusblockwidth;
+		var flag;
+		do{
+			flag = false;
+			for (i = 2;i<dayblock.children('div:not(.noshow)').length+1;i++){
+				for (j=1;j<i;j++){
+					var mpiece = dayblock.children('div:not(.noshow):nth-child('+i+')');
+					var mtop = parseInt(mpiece.css('top'));
+					var mwidth = parseInt(mpiece.css('width'));
+					var mleft = parseInt(mpiece.css('left'));
+					
+					var cpiece = dayblock.children('div:not(.noshow):nth-child('+j+')');
+					var ctop = parseInt(cpiece.css('top'));
+					var cbottom = ctop + parseInt(cpiece.css('height'));
+					var cleft = parseInt(cpiece.css('left'));
+					
+					if(mtop>=ctop&&mtop<cbottom&&cleft==mleft){
+						flag = true;
+						mpiece.css('left',mleft+mwidth);
+					}
+					
 				}
-			});
-			focusblock.css('left',focusblockleft);
-		});
+			}
+		}while(flag);
 	});
 }
 
