@@ -1,8 +1,8 @@
-/*var socket = io.connect('http://timetable-gened.rhcloud.com:8000/',function(){
+var socket = io.connect('http://timetable-gened.rhcloud.com:8000/',function(){
 	//'forceNew':true,
 });
-*/
-var socket = io();
+
+//var socket = io();
 $(document).ready(function(){
 	
 	$(window).resize(function(){
@@ -65,7 +65,7 @@ $(document).ready(function(){
 							$('#modal_login').modal('hide')
 							$('#nav_login')
 							.off('click')
-							.html('Logout')
+							.html('<span class = "glyphicon glyphicon-log-out"></span> Logout')
 							.click(function(){
 								location.reload();
 							});
@@ -403,7 +403,6 @@ function tutor_lvl1_binding(){
 				modal_filter_button_click($(this));
 				update_lesson_blocks_tt();
 			});
-			
 		}
 	});
 	
@@ -862,39 +861,6 @@ function order_filter_button(i){
 			}
 		}
 	}
-	
-	/*
-	$('#panel_class').children('div.panel-body').children('button:not(#id_button_special)').each(function(){
-		var b1 = $(this);
-		$('#panel_class').children('div.panel-body').children('button:not(#id_button_special)').each(function(){
-			var b2 = $(this);
-			if(b1.html()!=b2.html()){
-				if(Number(b1.html().substring(1))>Number(b2.html().substring(1))){
-					b1.insertAfter(b2);
-				}else{
-					b2.insertAfter(b1);
-				}
-			}
-		})
-	});
-	
-	var a=['tutor','location'];
-	for (i=0;i<a.length;i++){
-		$('#panel_'+a[i]).children('div.panel-body').children('button').each(function(){
-			var b1 = $(this);
-			$('#panel_'+a[i]).children('div.panel-body').children('button').each(function(){
-				var b2 = $(this);
-				if(b1.html()!=b2.html()){
-					if(b1.html()>b2.html()){
-						b1.insertAfter(b2);
-					}else{
-						b2.insertAfter(b1);
-					}
-				}
-			});
-		});
-	}
-	*/
 	
 	$('#id_button_notutorassigned').insertAfter($('#panel_tutor').children('div.panel-body').children('button:last-child'));
 	$('#id_button_NoLocationAssigned').insertAfter($('#panel_location').children('div.panel-body').children('button:last-child'));
@@ -1582,21 +1548,9 @@ function rearrange_blocks(){
 			}
 		}
 		
-		/*
-		dayblock.children('div:not(.noshow)').each(function(){
-			var block1 = $(this);
-			dayblock.children('div:not(.noshow)').each(function(){
-				var block2 = $(this);
-				if (parseInt(block1.css('top')) > parseInt(block2.css('top'))){
-					block2.insertAfter(block1);
-				}else if (parseInt(block1.css('top')) < parseInt(block2.css('top'))){
-					block1.insertAfter(block2);
-				}else{
-					/* this will get triggered multiple times, as the .each loop will loop though the same block multiple times
-				}
-			})
+		dayblock.children('div.noshow').each(function(){
+			$(this).insertAfter(dayblock.children('div').last());
 		});
-		*/
 	});
 	resize_blocks();
 }
@@ -1632,23 +1586,26 @@ function stagger_blocks(){
 		var flag;
 		do{
 			flag = false;
-			for (i = 2;i<dayblock.children('div:not(.noshow)').length+1;i++){
-				for (j=1;j<i;j++){
-					var mpiece = dayblock.children('div:not(.noshow):nth-child('+i+')');
-					var mtop = parseInt(mpiece.css('top'));
-					var mwidth = parseInt(mpiece.css('width'));
-					var mleft = parseInt(mpiece.css('left'));
-					
-					var cpiece = dayblock.children('div:not(.noshow):nth-child('+j+')');
-					var ctop = parseInt(cpiece.css('top'));
-					var cbottom = ctop + parseInt(cpiece.css('height'));
-					var cleft = parseInt(cpiece.css('left'));
-					
-					if(mtop>=ctop&&mtop<cbottom&&cleft==mleft){
-						flag = true;
-						mpiece.css('left',mleft+mwidth);
+			if(dayblock.children('div:not(.noshow)').length>1){
+				for (i = 2;i<dayblock.children('div:not(.noshow)').length+1;i++){
+					for (j=1;j<i;j++){
+						
+						var mpiece = dayblock.children('div:nth-child('+i+')');
+						var mtop = parseInt(mpiece.css('top'));
+						var mwidth = parseInt(mpiece.css('width'));
+						var mleft = parseInt(mpiece.css('left'));
+						
+						var cpiece = dayblock.children('div:nth-child('+j+')');
+						var ctop = parseInt(cpiece.css('top'));
+						var cbottom = ctop + parseInt(cpiece.css('height'));
+						var cleft = parseInt(cpiece.css('left'));
+						
+						
+						if(mtop>=ctop&&mtop<cbottom&&cleft==mleft){
+							flag = true;
+							mpiece.css('left',mleft+mwidth);
+						}
 					}
-					
 				}
 			}
 		}while(flag);

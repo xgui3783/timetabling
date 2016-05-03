@@ -9,10 +9,24 @@ var io = require('socket.io').listen(server);
 var mysql = require('mysql');
 var sha256 = require('js-sha256');
 
+
+/*
+var dbname = 'nodejs';
+
+var connection = mysql.createConnection({
+	host	:'localhost', 
+	user	:'root',
+	password	:'',
+	database	:dbname
+});
+*/
+
+/* process.env.OPENSHIFT_MYSQL_DB_HOST, */
+
 var dbname = 'timetable';
 
 var connection = mysql.createConnection({
-	host	:'127.7.51.130', /* process.env.OPENSHIFT_MYSQL_DB_HOST, */
+	host	:'127.7.51.130', 
 	user	:'adminsrCNFym',
 	password	:'9gPQRXKgSdbH',
 	database	:dbname
