@@ -1,9 +1,22 @@
+
 var socket = io.connect('http://timetable-gened.rhcloud.com:8000/',function(){
 	//'forceNew':true,
 });
 
 //var socket = io();
 $(document).ready(function(){
+	
+	var loginhandler = {
+		'show.bs.modal'	: function(){
+			$('#id_screen,#id_pleaseloginfirst').animate({'opacity':'0.0'},400,function(){
+				$(this).css('display','none');
+			});		
+		},
+		'hide.bs.modal'	:	function(){
+			$('#id_screen,#id_pleaseloginfirst').css('display','block').animate({'opacity':'0.7'},400,function(){
+			});	
+		}
+	}
 	
 	$(window).resize(function(){
 		rearrange_blocks();
@@ -30,13 +43,19 @@ $(document).ready(function(){
 		}else{
 			$(this).parent().parent().removeClass('has-error');
 			$(this).tooltip('hide');
-			
 		}
 	});
+	
+	$('#id_pleaseloginfirst img').click(function(){
+		$('#nav_login').click();
+	});
+	
+	$('#modal_login').on(loginhandler);
 	
 	$('#modal_login')
 	.modal('show')
 	.on('shown.bs.modal',function(){
+		
 		$('#modal_login #id_login_email').focus();
 		$('#modal_login').off('keypress').on('keypress',function(i){
 			if(i.which==13){
@@ -62,7 +81,15 @@ $(document).ready(function(){
 					socket.emit('login',json,function(o){
 						if(o.message=='login ok'){
 							/* login ok */
-							$('#modal_login').modal('hide')
+							$('#modal_login')
+							.off(loginhandler)
+							.modal('hide');
+							
+							$('#id_edit_block_popup').css('display','block');
+							$('#id_screen').css('display','block');
+							$('#id_screen_container').css('display','none');
+							
+							
 							$('#nav_login')
 							.off('click')
 							.html('<span class = "glyphicon glyphicon-log-out"></span> Logout')
@@ -108,19 +135,30 @@ $(document).ready(function(){
 				'hashed_id':$('#id_tutormodal_hashed_id').val(),
 				'name':$('#id_tutormodal_name').val(),
 				'mobileno':$('#id_tutormodal_mobile').val(),
-				'email':$('#id_tutormodal_email').val()};
+				'email':$('#id_tutormodal_email').val(),
+				'admin':$('#id_tutormodal_admin').val()};
 				
 			switch($('#modal_edit_tutor .modal-header h4').html().substring(0,3)){
 				case 'Upd':
 					if($('#pswd_block').hasClass('in')){
-						$('#pswd_block input').each(function(){
-							$(this).focus().blur();
-						})
+						if(socket.admin==2){
+							$('#pswd_block input:not(:first-child)').each(function(){
+								$(this).focus().blur();
+							});
+						}else{
+							$('#pswd_block input').each(function(){
+								$(this).focus().blur();
+							});
+						}
 						if($('#pswd_block').children('div').hasClass('has-error')){
 							return false;
 						}
-						json['oldpswd']=$.sha256($('#id_tutormodal_oldpswd').val());
-						json['newpswd']=$.sha256($('#id_tutormodal_newpswd').val());
+						if(socket.admin==2){
+							json['newpswd']=$.sha256($('#id_tutormodal_newpswd').val());
+						}else{
+							json['oldpswd']=$.sha256($('#id_tutormodal_oldpswd').val());
+							json['newpswd']=$.sha256($('#id_tutormodal_newpswd').val());
+						}
 					}
 					socket.emit('update_existing_tutor',json,function(o){
 						switch(o){
@@ -273,6 +311,7 @@ function tutor_lvl1_binding(){
 			$('#id_tutormodal_hashed_id').val(json[0].hashed_id);
 			
 			$('#modal_edit_tutor h4').last().html('<a href = "#pswd_block" data-toggle = "collapse">Password</a>');
+
 			
 		});
 	});
@@ -432,6 +471,23 @@ function tutor_lvl1_binding(){
 	socket.emit('on_document_load',function(o){
 		socket.admin = o.admin;
 		socket.name = o.name;
+		if(socket.admin==2){
+			var admincontrol = 
+				'<div class = "form-group">'+
+					'<label class = "control-label col-xs-3" for = "id_tutormodal_admin">Admin Level:</label>'+
+					'<div class = "col-xs-2">'+
+						'<select class = "form-control" id = "id_tutormodal_admin">'+
+							'<option>0</option>'+
+							'<option>1</option>'+
+							'<option>2</option>'+
+						'</select>'+
+					'</div>'+
+					'<div class = "col-xs-7">0 - tutor<br> 1 - timetable archivist<br> 2 - skynet</div>'+
+				'</div>';
+			if($('#id_tutormodal_admin').length==0){
+				$(admincontrol).insertAfter($('#id_tutormodal_mobile').parent().parent());
+			}
+		}
 	});
 	
 	socket.on('server_to_client_rearrange_blocks',function(){
@@ -673,8 +729,6 @@ function tutor_lvl1_binding(){
 	});
 	
 	socket.on('append_admin0_tutor_slot',function(o){
-		console.log(socket.name);
-		console.log(socket.admin);
 		$('#id_edit_block_popup #id_tutorname')
 		.append('<option>'+o+'</option>');
 		$('#id_edit_block_popup #id_tutorname').val(o);
@@ -735,12 +789,18 @@ function append_tutor_entry(json){
 		/* return false, so won't load the tutor profile */
 		return false;
 	});
+	
 	$('.modal_tutor_unit:last-child').click(function(){
 		socket.emit('edit_tutor',$(this).attr('id'),function(json){
 			
 			/* clicking on the existing tutor slot */
 			
-			$('#id_tutormodal_oldpswd').prop('disabled',false);
+			if(socket.admin==2){
+				$('#id_tutormodal_admin').val(json[0].admin);
+			}
+			
+			//$('#id_tutormodal_oldpswd').prop('disabled',false);
+			$('#id_tutormodal_oldpswd').prop('disabled',true);
 			$('#pswd_block').addClass('collapse');
 			$('#pswd_block').collapse('hide');
 			$('#modal_edit_tutor').modal('show');

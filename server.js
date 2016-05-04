@@ -12,7 +12,6 @@ var sha256 = require('js-sha256');
 
 /*
 var dbname = 'nodejs';
-
 var connection = mysql.createConnection({
 	host	:'localhost', 
 	user	:'root',
@@ -23,14 +22,15 @@ var connection = mysql.createConnection({
 
 /* process.env.OPENSHIFT_MYSQL_DB_HOST, */
 
-var dbname = 'timetable';
 
+var dbname = 'timetable';
 var connection = mysql.createConnection({
 	host	:'127.7.51.130', 
 	user	:'adminsrCNFym',
 	password	:'9gPQRXKgSdbH',
 	database	:dbname
 });
+
 
 io.on('connection',function(socket){
 	
@@ -100,14 +100,17 @@ io.on('connection',function(socket){
 			'name':i.name,
 			'email':i.email,
 			'mobileno':i.mobileno};
-		if(i.oldpswd!=undefined){
+		if(socket.admin==2){
+			update_json['admin']=i.admin;
+		}
+		if((i.oldpswd!=undefined&&(socket.admin==0||socket.admin==1))||(socket.admin==2)&&i.newpswd!=undefined){
 			/* updating pswd as well as basic info */
 			connection.query('SELECT salt, pswd_encrypt FROM tutor_db WHERE hashed_id = ?',i.hashed_id,function(e,r){
 				if(e){
 					socket.emit('server_to_client_update_failed', 'Err50 db failed. Likely due to database is down. Trace:'+e);
 				}else{
-					if(sha256(i.oldpswd+r[0].salt)==r[0].pswd_encrypt){
-						//right old pswd
+					if((sha256(i.oldpswd+r[0].salt)==r[0].pswd_encrypt)||socket.admin==2){
+						//right old pswd or person has admin rights of 2
 						update_json['pswd_encrypt']=sha256(i.newpswd+r[0].salt);
 						connection.query('SELECT * FROM tutor_db WHERE email = ? AND NOT hashed_id = ?',[i.email,i.hashed_id],function(e2,r2){
 							if(e2){
@@ -325,7 +328,12 @@ io.on('connection',function(socket){
 		}
 	});
 	socket.on('edit_tutor',function(i,callback){
-		connection.query('SELECT hashed_id, name, mobileno, email FROM tutor_db WHERE hashed_id = ?',i,function(e,r){
+		if(socket.admin==2){
+			var q = 'SELECT admin,hashed_id, name, mobileno, email FROM tutor_db WHERE hashed_id = ?';
+		}else if (socket.admin==1||socket.admin==0){
+			var q = 'SELECT hashed_id, name, mobileno, email FROM tutor_db WHERE hashed_id = ?';
+		}
+		connection.query(q,i,function(e,r){
 			if(e){
 				socket.emit('server_to_client_update_failed', 'Err159. Select failed. Likely due to database is down. Trace:'+e);
 			}else{
