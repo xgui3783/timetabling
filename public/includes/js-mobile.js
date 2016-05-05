@@ -1,9 +1,9 @@
-/*
+
 var socket = io.connect('http://timetable-gened.rhcloud.com:8000/',function(){
 	//'forceNew':true,
 });
 //*/
-var socket = io();
+/*var socket = io();//*/
 $(document).ready(function(){
 	
 	/* small device has no need for hoverinfo */
