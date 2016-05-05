@@ -32,8 +32,8 @@ $(document).ready(function(){
 			});
 		}else{
 			$('#id_scaffold_overlay_carousel,#id_scaffold_parent_carousel').animate({'left':original-step},400,function(){
-				$('#id_scaffold_overlay_carousel').children('div').eq(index+2).children('.lessonblock').removeClass('hidden');
-				$('#id_scaffold_overlay_carousel').children('div').eq(index-1).children('.lessonblock').addClass('hidden');
+				$('#id_scaffold_overlay_carousel').children('div').eq(-index+2).children('.lessonblock').removeClass('hidden');
+				$('#id_scaffold_overlay_carousel').children('div').eq(-index-1).children('.lessonblock').addClass('hidden');
 				bind_fn_lessonblocks();
 			});
 			
@@ -49,8 +49,8 @@ $(document).ready(function(){
 			});
 		}else{
 			$('#id_scaffold_overlay_carousel,#id_scaffold_parent_carousel').animate({'left':original+step},400,function(){
-				$('#id_scaffold_overlay_carousel').children('div').eq(index-2).children('.lessonblock').removeClass('hidden');
-				$('#id_scaffold_overlay_carousel').children('div').eq(index+1).children('.lessonblock').addClass('hidden');
+				$('#id_scaffold_overlay_carousel').children('div').eq(-index-2).children('.lessonblock').removeClass('hidden');
+				$('#id_scaffold_overlay_carousel').children('div').eq(-index+1).children('.lessonblock').addClass('hidden');
 				bind_fn_lessonblocks();
 			});
 		}
