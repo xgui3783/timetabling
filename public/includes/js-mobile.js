@@ -25,8 +25,8 @@ $(document).ready(function(){
 	$(document).on('swipeleft',function(){
 		var step = parseInt($('#id_scaffold_overlay_viewport').css('width'));
 		var original = parseInt($('#id_scaffold_overlay_carousel').css('left'));
-		var index = Math.round(step/original);
-		if(index==6){
+		var index = Math.round(original/step);
+		if(index==-6){
 			$('#id_scaffold_overlay_carousel,#id_scaffold_parent_carousel').animate({'left':(original-step/3)},200,function(){
 				$('#id_scaffold_overlay_carousel,#id_scaffold_parent_carousel').animate({'left':original},100,function(){});
 			});
@@ -42,7 +42,7 @@ $(document).ready(function(){
 	$(document).on('swiperight',function(){
 		var step = parseInt($('#id_scaffold_overlay_viewport').css('width'));
 		var original = parseInt($('#id_scaffold_overlay_carousel').css('left'));
-		var index = Math.round(step/original);
+		var index = Math.round(original/step);
 		if(index==0){
 			$('#id_scaffold_overlay_carousel,#id_scaffold_parent_carousel').animate({'left':(original+step/3)},200,function(){
 				$('#id_scaffold_overlay_carousel,#id_scaffold_parent_carousel').animate({'left':original},100,function(){});
