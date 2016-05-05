@@ -9,18 +9,23 @@
 	<link rel = "stylesheet" href = "https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
 	<script src = "https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
 	<script src = "/socket.io/socket.io.js"></script>
+	<script src = "/includes/jquery.sha256.min.js"></script>
+	
+	
+	<script src = "/includes/js-choosecolor.js"></script>
 
 	<!-- mobile js and css -->
 	<script>
 		if(window.innerWidth<768){
 			document.write('<link rel = "stylesheet" href = "http://ajax.googleapis.com/ajax/libs/jquerymobile/1.4.5/jquery.mobile.min.css">');
 			document.write('<script src = "http://ajax.googleapis.com/ajax/libs/jquerymobile/1.4.5/jquery.mobile.min.js"><\/script>');
+			document.write('<script src = "/includes/js-mobile.js"><\/script>');
+		}else{
+			document.write('<script src = "/includes/js.js"><\/script>');
 		}
 	</script>
 	<!-- project specific -->
-	<script src = "/includes/jquery.sha256.min.js"></script>
 	<link rel = "stylesheet" href = "/includes/css.css">
-	<script src = "/includes/js.js"></script>
 	
 </head>
 

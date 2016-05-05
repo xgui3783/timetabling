@@ -6,10 +6,56 @@ var socket = io.connect('http://timetable-gened.rhcloud.com:8000/',function(){
 var socket = io();
 $(document).ready(function(){
 	
-	/* large device */
-	$('#id_scaffold_overlay_carousel').css('width','100%');
-	$('#id_scaffold_parent_carousel').css('width','100%');
-		
+	/* small device has no need for hoverinfo */
+	$('#hoverinfo').remove();
+	
+	/* when a modal is dismissed, all modals are dismissed (weird interactions between jqm and bootstrap modal in that when a modal is dismissed, other active modals freezes) */
+	$('.modal').on('hidden.bs.modal',function(){
+		$('.modal').modal('hide');
+	})
+	
+	var viewportwidth = parseInt($('#id_scaffold_parent_viewport').css('width'));
+	$('#id_scaffold_overlay_carousel').css('width',viewportwidth*7);
+	$('#id_scaffold_parent_carousel').css('width',viewportwidth*7);
+	$('#id_scaffold_overlay_carousel').children('div').css('width','14.28571428571429%');
+	$('#id_scaffold_parent_carousel').children('div').css('width','14.28571428571429%');
+	$('#id_scaffold_overlay_carousel,#id_scaffold_parent_carousel').css('left','0');
+	
+	
+	$(document).on('swipeleft',function(){
+		var step = parseInt($('#id_scaffold_overlay_viewport').css('width'));
+		var original = parseInt($('#id_scaffold_overlay_carousel').css('left'));
+		var index = Math.round(original/step);
+		if(index==6){
+			$('#id_scaffold_overlay_carousel,#id_scaffold_parent_carousel').animate({'left':(original-step/3)},200,function(){
+				$('#id_scaffold_overlay_carousel,#id_scaffold_parent_carousel').animate({'left':original},100,function(){});
+			});
+		}else{
+			$('#id_scaffold_overlay_carousel,#id_scaffold_parent_carousel').animate({'left':original-step},400,function(){
+				$('#id_scaffold_overlay_carousel').children('div').eq(index+2).children('.lessonblock').removeClass('hidden');
+				$('#id_scaffold_overlay_carousel').children('div').eq(index-1).children('.lessonblock').addClass('hidden');
+				bind_fn_lessonblocks();
+			});
+			
+		}
+	});
+	$(document).on('swiperight',function(){
+		var step = parseInt($('#id_scaffold_overlay_viewport').css('width'));
+		var original = parseInt($('#id_scaffold_overlay_carousel').css('left'));
+		var index = Math.round(original/step);
+		if(index==0){
+			$('#id_scaffold_overlay_carousel,#id_scaffold_parent_carousel').animate({'left':(original+step/3)},200,function(){
+				$('#id_scaffold_overlay_carousel,#id_scaffold_parent_carousel').animate({'left':original},100,function(){});
+			});
+		}else{
+			$('#id_scaffold_overlay_carousel,#id_scaffold_parent_carousel').animate({'left':original+step},400,function(){
+				$('#id_scaffold_overlay_carousel').children('div').eq(index-2).children('.lessonblock').removeClass('hidden');
+				$('#id_scaffold_overlay_carousel').children('div').eq(index+1).children('.lessonblock').addClass('hidden');
+				bind_fn_lessonblocks();
+			});
+		}
+	});
+	
 	
 	var loginhandler = {
 		'show.bs.modal'	: function(){
@@ -23,42 +69,12 @@ $(document).ready(function(){
 		}
 	}
 	
-	$(window).resize(function(){
-		
-		if(window.innerWidth>=768){
-			/* large device */
-			$('#id_scaffold_overlay_carousel').css('width','100%');
-			$('#id_scaffold_parent_carousel').css('width','100%');
-			
-		}else{
-			/* small device */
-			var viewportwidth = parseInt($('#id_scaffold_parent_viewport').css('width'));
-			$('#id_scaffold_overlay_carousel').css('width',viewportwidth*7);
-			$('#id_scaffold_parent_carousel').css('width',viewportwidth*7);
-			$('#id_scaffold_overlay_carousel').children('div').css('width','14.28571428571429%');
-			$('#id_scaffold_parent_carousel').children('div').css('width','14.28571428571429%');
-			$(document).on('swipeleft',function(){
-				var step = parseInt($('#id_scaffold_overlay_viewport').css('width'));
-				var original = parseInt($('#id_scaffold_overlay_carousel').css('left'));
-				$('#id_scaffold_overlay_carousel').css('left',original+step);
-				$('#id_scaffold_parent_carousel').css('left',original+step);
-			});
-			$(document).on('swiperight',function(){
-				var step = parseInt($('#id_scaffold_overlay_viewport').css('width'));
-				var original = parseInt($('#id_scaffold_overlay_carousel').css('left'));
-				$('#id_scaffold_overlay_carousel').css('left',original-step);
-				$('#id_scaffold_parent_carousel').css('left',original-step);	
-			});
-		}
-		rearrange_blocks();
-	});
-	
 	$('#modal_warning')
 	.on('shown.bs.modal',function(){
 		$('#modal_warning .btn-default').focus();
 	});
 	
-	$('#nav_login').click(function(){
+	$('#nav_login').on('tap',function(){
 		$('#modal_login').modal('show');
 		$('#modal_login input').val('');
 	});
@@ -77,8 +93,8 @@ $(document).ready(function(){
 		}
 	});
 	
-	$('#id_pleaseloginfirst img').click(function(){
-		$('#nav_login').click();
+	$('#id_pleaseloginfirst img').on('tap',function(){
+		$('#nav_login').tap();
 	});
 	
 	$('#modal_login').on(loginhandler);
@@ -161,7 +177,7 @@ $(document).ready(function(){
 	
 	$('#modal_edit_tutor')
 	.on('shown.bs.modal',function(){
-		$('#modal_edit_tutor .btn-success').off('click').click(function(){
+		$('#modal_edit_tutor .btn-success').off('tap').on('tap',function(){
 			var json = {
 				'hashed_id':$('#id_tutormodal_hashed_id').val(),
 				'name':$('#id_tutormodal_name').val(),
@@ -199,12 +215,12 @@ $(document).ready(function(){
 									title: 'Incorrect password.'
 								})
 								.tooltip('show')
-								.parent().parent().addClass('has-error')
-								.keypress(function(){
+								.change(function(){
 									$(this).tooltip('hide');
 									$(this).parent().parent().removeClass('has-error');
-									$(this).off('keypress');
+									$(this).off('change');
 								})
+								.parent().parent().addClass('has-error');
 							break;
 							case 'same_email':
 								$('#id_tutormodal_email').tooltip('show');
@@ -212,11 +228,15 @@ $(document).ready(function(){
 							break;
 							case 'update_completed':
 								
+								/*
+								
+								//no need to update the modal_tutor row in mobile platform, as they the modal is dismissed immediately any way
 								$('#modal_tutor_row #'+json.hashed_id+' div:nth-child(1)').html(json.name);
 								$('#modal_tutor_row #'+json.hashed_id+' div:nth-child(2)').html(json.mobileno);
 								$('#modal_tutor_row #'+json.hashed_id+' div:nth-child(3)').html(json.email);
 								
 								$('#modal_edit_tutor').modal('hide');
+								*/
 								
 								$('#modal_warning .modal-title').html('Notice');
 								$('#modal_warning .modal-body').html('Existing tutor updated.');
@@ -234,11 +254,13 @@ $(document).ready(function(){
 					json['newpswd']=$.sha256($('#id_tutormodal_newpswd').val());
 					socket.emit('add_new_tutor',json,function(o){
 						if(o=='add_new_tutor_complete'){
+							/*
+								//no need to update the modal_tutor row in mobile platform, as they the modal is dismissed immediately any way
 							$('#modal_edit_tutor').modal('hide');
 							json['hashed_id']=json['now'];
 							append_tutor_entry(json);
 							$('#modal_tutor #id_addnewtutor').insertAfter($('#modal_tutor .modal_tutor_unit').last());
-							
+							*/
 							$('#modal_warning .modal-title').html('Notice');
 							$('#modal_warning .modal-body').html('New tutor Added.');
 							$('#modal_warning').modal('show');
@@ -252,15 +274,20 @@ $(document).ready(function(){
 		});
 		
 		$('#id_tutormodal_name').select();
+		
+		/*
+		//no key press in mobile platform
+		
 		$('#modal_edit_tutor').keypress(function(i){
 			if(i.which==13){
 				$('#modal_edit_tutor .btn-success').click();
 			}
 		})
+		*/
 	})
 	.on('hidden.bs.modal',function(){
-		$('#modal_edit_tutor .btn-success').off('click');
-		$('#modal_edit_tutor').off('keypress');
+		$('#modal_edit_tutor .btn-success').off('tap');
+		//$('#modal_edit_tutor').off('keypress');
 	});
 });
 
@@ -275,7 +302,7 @@ function tutor_lvl2_binding(){
 	tutor_lvl1_binding();
 	
 	/* bind add new tutor button at add class block */
-	$('#popup_addtutor').click(function(){
+	$('#popup_addtutor').on('tap',function(){
 		$('#id_tutormodal_oldpswd').prop('disabled',true);
 		$('#pswd_block').removeClass('collapse');
 		$('#pswd_block').css('height','153px');
@@ -286,7 +313,7 @@ function tutor_lvl2_binding(){
 	});
 	
 	/* bind tutors profile button */
-	$('#nav_profiles').off('click').click(function(){
+	$('#nav_profiles').off('tap').tap(function(){
 		$('#modal_tutor').modal('show');
 		$('#modal_tutor_row').empty();
 		socket.emit('load_profiles','me',function(json){
@@ -298,7 +325,7 @@ function tutor_lvl2_binding(){
 		$('#modal_tutor_row').append('<div id = "id_addnewtutor" class = "col-xs-12"><button class = "col-xs-12 btn btn-default btn-lg btn-primary">Add a new tutor</button></div>');
 		
 		/* when add a new tutor is been added, also bind click event listeners */
-		$('#modal_tutor_row .btn-primary').off('click').click(function(){
+		$('#modal_tutor_row .btn-primary').off('tap').on('tap',function(){
 			
 			/* clicking add a new tutor */
 			$('#id_tutormodal_oldpswd').prop('disabled',true);
@@ -327,7 +354,7 @@ function tutor_lvl1_binding(){
 	/* binding functions */
 	
 	/* bind clicking tutor profile button */
-	$('#nav_profiles').click(function(){
+	$('#nav_profiles').on('tap',function(){
 		socket.emit('edit_tutor',$('#id_tutormodal_hashed_id').val(),function(json){
 			
 			$('#id_tutormodal_oldpswd').prop('disabled',false);
@@ -747,6 +774,10 @@ function tutor_lvl1_binding(){
 		});
 	});
 	
+	$('.lessonblock').addClass('hidden');
+	$('#id_scaffold_overlay_carousel').children('div').eq(1).children('.lessonblock').removeClass('hidden');
+	$('#id_scaffold_overlay_carousel').children('div').eq(2).children('.lessonblock').removeClass('hidden');
+	
 	bind_fn_creating_blocks();
 	
 	/* block control */
@@ -979,6 +1010,7 @@ function color_blocks(i){
 		break;
 	}
 }
+
 
 function deheaded_string_to_number(i){
 	i = i.replace(/ /g,'');
@@ -1268,119 +1300,22 @@ function reset_block(){
 
 function bind_fn_lessonblocks(){
 
-	$('div.lessonblock').off()
-	.on('mousedown',function(d){
-		$('div.lessonblock').off('mousemove');
-		$('#hoverinfo').css('disiplay','none');
-		if(d.which!=1){return false;}
-		
-		//in case there are other blocks with the class "activeblock"
-		$('div.activeblock').removeClass('activeblock');
+	$('div.lessonblock').off();
+	$('div.lessonblock:not(.hidden)').on('tap',function(){
+		$('.activeblock').removeClass('activeblock');
 		$(this).addClass('activeblock');
-		
-		//determines if it's resizing or moving we want
-		if($('.activeblock').css('cursor')=='ns-resize'){
-			var flag = 'resize';
-			var oldheight = parseInt($('.activeblock').css('height'));
-		}else{
-			var flag = 'default';
-		}
-		
-		var rd = relative_offsetY(d,'.activeblock');
-		var rdx = relative_offsetX(d,'.activeblock');
-		
-		$(document)
-		.on('mousemove',function(m){
-			var rm = relative_offsetY(m,'#id_table_scaffold');
-			var rmx = relative_offsetX(m,'#id_scaffold_overlay_carousel');
-			$('.activeblock').addClass('inprogress');
-			
-			if(flag == 'default'){
-				
-				if (round_off_offsetY(rm-rd)+parseInt($('.activeblock').css('height'))-1<=parseInt($('#id_table_scaffold tbody tr:last-child').position().top)+parseInt($('#id_table_scaffold tbody tr:last-child').css('height'))){
-					$('.activeblock').css({
-						'top': round_off_offsetY(rm-rd),
-					})
-				}
-				
-				$('.activeblock').appendTo(round_off_offsetX(rmx));
-				
-				/*
-				if (Math.round(round_off_offsetX(rmx).position().left) == 0){
-					
-				}else if(Math.round($('.activeblock').parent().position().left)>Math.round(round_off_offsetX(rmx).position().left)){
-					$('.activeblock').appendTo($('.activeblock').parent().prev());
-				}else if(Math.round($('.activeblock').parent().position().left)<Math.round(round_off_offsetX(rmx).position().left)){
-					$('.activeblock').appendTo($('.activeblock').parent().next());
-				}
-				*/
-				
-			}else{
-				if(parseInt($('.activeblock').css('top'))+parseInt($('.activeblock').css('height')) > relative_offsetY(m,'#id_table_scaffold')){
-					$('.activeblock').css('height',round_off_offsetY(oldheight+m.pageY-d.pageY));
-				}else{
-					if(parseInt($('.activeblock').css('top'))+parseInt($('.activeblock').css('height'))<parseInt($('#id_table_scaffold tbody tr:last-child').position().top)+parseInt($('#id_table_scaffold tbody tr:last-child').css('height'))){	
-						$('.activeblock').css('height',round_off_offsetY(oldheight+m.pageY-d.pageY));
-					}
-				}
-				
-			}
-		})
-		.on('mouseup',function(u){
-			$(document).off('mouseup');
-			$(document).off('mousemove');
-			
-			if(d.pageX==u.pageX&&d.pageY==u.pageY){
-				//if button down and button up is the same, call edit dialogue
-				call_editblock();
-				populate_edit_block();
-			}else{			
-				//if not the same, just update the day/time, by calling edit dialogue (which auto updates the day/time), and then saving
-				
-				call_editblock();
-				populate_edit_block();
-				save_block();
-				$('#id_screen,#id_edit_block_popup').finish();
-			}
-		});
-		
-		//return false to stopstriggering the parent onmousedown event
+		call_editblock();
+		populate_edit_block();
 		return false;
-	})
-	
-	.on('mousemove',function(m){
-		$('#hoverinfo').css({
-			'display'	:'block',
-			'top'		:m.pageY-20,
-			'left'		:m.pageX+20,
-			'background-color'	:$(this).css('background-color')
-		}).html($(this).html());
-		
-		if(relative_offsetY(m,$(this))-(parseInt($(this).css('height')))>-10){
-			//change cursor to vertical resizing
-			$(this).css('cursor','ns-resize');
-		}else{
-			//change cursor to default
-			$(this).css('cursor','default');
-		}
-	})
-	
-	.on('mouseout',function(){
-		$('#hoverinfo').css('display','none');
-		//change cursor to default
-		$(this).css('cursor','default');
 	});
 }
 
 function bind_fn_creating_blocks(){
 	
 	//binding overlay element with on mouse down event
-	$('#id_scaffold_overlay_carousel').children('div').off('mousedown').on('mousedown',function(d){
+	$('#id_scaffold_overlay_carousel').children('div').off('tap').on('tap',function(d){
 		
-		//if not a left click, terminate the function
-		if(d.which!=1||d.offsetY<35){return false;}
-		
-		//otherwise, append a div object
+		$('.activeblock').removeClass('activeblock');
 		$(this).append('<div class = "lessonblock activeblock"></div>');
 		$('div.activeblock').css({
 			'top':round_off_offsetY(d.offsetY),
@@ -1388,33 +1323,10 @@ function bind_fn_creating_blocks(){
 			'height':'32px',
 			'width':'100%'
 		});
+		call_editblock();
+		populate_edit_block();
 		
-		//when mouse moves, the active div object changes size as well
-		$(document).on('mousemove',function(m){
-			var rm = relative_offsetY(m,'#id_table_scaffold');
-			if(rm>d.offsetY){
-				$('div.activeblock').css('height',round_off_offsetY(rm)-round_off_offsetY(d.offsetY) + 32);
-			}else{
-				$('div.activeblock').css({
-					'top':round_off_offsetY(rm),
-					'height':round_off_offsetY(d.offsetY)-round_off_offsetY(rm)+32
-				});
-			}
-		});
-		
-		$(document).on('mouseup',function(u){
-			//if the user accidentally triggered mouseup inside the viewport, but outside the div
-			bind_fn_lessonblocks();
-			
-			$('div.activeblock').addClass('newblock').append('<span class = "lessonblock_classname"></span><span class = "lessonblock_tutorname"></span><span class = "lessonblock_location"></span><span class = "lessonblock_day"></span><span class = "lessonblock_starttime"></span><span class = "lessonblock_endtime"></span><span class = "lessonblock_students"></span><span class = "lessonblock_notes"></span>');
-			//removing active block should be called elsewhere, like when dismiss_editblock is called
-			call_editblock();
-			populate_edit_block();
-			
-			$(document).off('mouseup');
-			$(document).off('mousemove');
-		});
-	});	
+	});
 }
 
 function populate_edit_block(){
@@ -1475,20 +1387,6 @@ function call_editblock(){
 	
 	/* focusing on the first field inside the edit block dialogue */
 	$('#id_classname').focus();
-	
-	$('#id_edit_block_popup').on('keypress',function(e){
-		switch (e.which){
-			case 13:
-				save_block();
-			break;
-			case 27:
-				//doesn't work on my lenovo
-				reset_block();
-			break;
-			default:
-				//console.log(e.which);
-		}
-	})
 }
 
 function dismiss_editblock(){
