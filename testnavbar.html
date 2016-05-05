@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+</head>
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<script src="https://code.jquery.com/jquery-2.2.3.min.js" integrity="sha256-a23g1Nt4dtEYOj7bR+vTu7+T8VP13humZFBJNIYoEJo=" crossorigin="anonymous"></script>
+	<link rel = "stylesheet" href = "https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
+	<script src = "https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
+	<script src = "http://ajax.googleapis.com/ajax/libs/jquerymobile/1.4.5/jquery.mobile.min.js"></script>
+	
+	<script>
+	$('#test').html('default preloaded');
+	$(document).ready(function(){
+		$('#test').html('default loaded');
+		$(document).on('swipeleft',function(){
+			alert('left');
+			$('#test').html('swipeleft');
+		});
+		$(document).on('swiperight',function(){
+			alert('right');
+			$('#test').html('swiperight');		
+		});
+	});
+	</script>
+</head>
+<body>
+	<nav class = "navbar navbar-default">
+		<div class = "container-fluid">
+			<div class = "navbar-header">
+				<button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#collapse_navbar">
+					<span class="icon-bar"></span>
+					<span class="icon-bar"></span>
+					<span class="icon-bar"></span> 
+				</button>
+				<a class = "navbar-brand" id = "nav_name">Timetable Name</a>
+			</div>
+			<div class="collapse navbar-collapse" id="collapse_navbar">
+				<ul class = "nav navbar-nav" id = "id_navbar_ttcontrol">
+					<li><a href = "#" id = "nav_new"><span class = "glyphicon glyphicon-file"></span> New</a></li>
+					<li><a href = "#" id = "nav_saveacopy"><span class = "glyphicon glyphicon-floppy-disk"></span> Save A Copy</a></li>
+					<li><a href = "#" id = "nav_load"><span class = "glyphicon glyphicon-folder-open"></span> Load</a></li>
+					<li><a href = "#" id = "nav_filter"><span class = "glyphicon glyphicon-filter"></span> Filter</a></li>
+				</ul>
+				<ul class = "nav navbar-nav navbar-right">
+					<li><a href = "#" id = "nav_students">Students Profiles</a></li>
+					<li><a href = "#" id = "nav_profiles"><span class = "glyphicon glyphicon-user"></span> Tutor Profile</a></li>
+					<li><a href = "#" id = "nav_login"><span class="glyphicon glyphicon-log-in"></span> Login</a></li>
+				</ul>
+			</div>
+		</div>
+	</nav>
+	<div class = "row">
+		<div class = "col-xs-12" id = "test">
+		default
+		</div>
+	</div>
+</body>
+</html>

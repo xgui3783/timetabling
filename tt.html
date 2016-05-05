@@ -1,15 +1,22 @@
 <!doctype html>
 <html lang="en">
 <head>
+	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<title>Generation Education Timetabling</title>
 
 	<!-- can be delivered by CDN -->
-	<script src = "/includes/jquery-2.2.3.min.js"></script>
+	<script src="https://code.jquery.com/jquery-2.2.3.min.js" integrity="sha256-a23g1Nt4dtEYOj7bR+vTu7+T8VP13humZFBJNIYoEJo=" crossorigin="anonymous"></script>
 	<link rel = "stylesheet" href = "https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
-	<script src = "/includes/angular.min.js"></script>
 	<script src = "https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
 	<script src = "/socket.io/socket.io.js"></script>
 
+	<!-- mobile js and css -->
+	<script>
+		if(window.innerWidth<768){
+			document.write('<link rel = "stylesheet" href = "http://ajax.googleapis.com/ajax/libs/jquerymobile/1.4.5/jquery.mobile.min.css">');
+			document.write('<script src = "http://ajax.googleapis.com/ajax/libs/jquerymobile/1.4.5/jquery.mobile.min.js"><\/script>');
+		}
+	</script>
 	<!-- project specific -->
 	<script src = "/includes/jquery.sha256.min.js"></script>
 	<link rel = "stylesheet" href = "/includes/css.css">
@@ -31,14 +38,14 @@
 				<div class = "modal-body">
 					<div class = "form-horizontal" role = "form">
 						<div class = "form-group">
-							<label class = "control-label col-xs-3" for = "id_login_email">e-mail:</label>
-							<div class = "col-xs-5">
+							<label class = "control-label col-xs-4 col-sm-4 col-md-3" for = "id_login_email">e-mail:</label>
+							<div class = "col-xs-7 col-sm-7 col-md-5">
 								<input type = "text" class = "form-control" id = "id_login_email" data-placement = "right" title = "Please enter your registered e-mail address." placeholder = "e.g. johnsmith@example.com">
 							</div>
 						</div>
 						<div class = "form-group">
-							<label class = "control-label col-xs-3" for = "id_login_pswd">password:</label>
-							<div class = "col-xs-5">
+							<label class = "control-label col-xs-4 col-sm-4 col-md-3" for = "id_login_pswd">password:</label>
+							<div class = "col-xs-7 col-sm-7 col-md-5">
 								<input type = "password" class = "form-control" id = "id_login_pswd" data-placement = "right" title = "Please enter a password." placeholder = "Type your password here.">
 							</div>
 						</div>
@@ -104,21 +111,21 @@
 					<form class = "form-horizontal" role="form">
 						<h4>Details</h4><input style = "display:none;" type = "text" id = "id_tutormodal_hashed_id" disabled>
 						<div class = "form-group">
-							<label class = "control-label col-xs-3" for = "id_tutormodal_name">Name:</label>
-							<div class = "col-xs-5">
+							<label class = "control-label col-xs-5 col-sm-5 col-md-3" for = "id_tutormodal_name">Name:</label>
+							<div class = "col-xs-7 col-sm-7 col-md-5">
 								<input type = "text" class = "form-control" id = "id_tutormodal_name" placeholder = "e.g. John Smith">
 							</div>
 						</div>
 						<div class = "form-group">
-							<label class = "control-label col-xs-3" for = "id_tutormodal_email">Email:</label>
-							<div class = "col-xs-5">
+							<label class = "control-label col-xs-5 col-sm-5 col-md-3" for = "id_tutormodal_email">Email:</label>
+							<div class = "col-xs-7 col-sm-7 col-md-5">
 								<input type = "email" class = "form-control" id = "id_tutormodal_email" placeholder = "Enter your e-mail address here.">
 								
 							</div>
 						</div>
-						<div class = "form-group">
-							<label class = "control-label col-xs-3" for = "id_tutormodal_mobile">Mobile:</label>
-							<div class = "col-xs-5">
+						<div class = "form-group" id = "id_admin_anchor">
+							<label class = "control-label col-xs-5 col-sm-5 col-md-3" for = "id_tutormodal_mobile">Mobile:</label>
+							<div class = "col-xs-7 col-sm-7 col-md-5">
 								<input type = "text" class = "form-control" id = "id_tutormodal_mobile" placeholder = "Enter your mobile number here.">
 							</div>
 						</div>
@@ -126,20 +133,20 @@
 						<h4><a href = "#pswd_block" data-toggle = "collapse">Password</a></h4>
 						<div id = "pswd_block">
 							<div class = "form-group">
-								<label class = "control-label col-xs-3" for = "id_tutormodal_mobile">Old:</label>
-								<div class = "col-xs-5">
+								<label class = "control-label col-xs-5 col-sm-5 col-md-3" for = "id_tutormodal_mobile">Old:</label>
+								<div class = "col-xs-7 col-sm-7 col-md-5">
 									<input type = "password" class = "form-control" id = "id_tutormodal_oldpswd" placeholder = "Enter your old password.">
 								</div>
 							</div>
 							<div class = "form-group">
-								<label class = "control-label col-xs-3" for = "id_tutormodal_mobile">New:</label>
-								<div class = "col-xs-5">
+								<label class = "control-label col-xs-5 col-sm-5 col-md-3" for = "id_tutormodal_mobile">New:</label>
+								<div class = "col-xs-7 col-sm-7 col-md-5">
 									<input type = "password" class = "form-control" id = "id_tutormodal_newpswd" placeholder = "Enter your new password.">
 								</div>
 							</div>
 							<div class = "form-group">
-								<label class = "control-label col-xs-3" for = "id_tutormodal_mobile">Re-enter:</label>
-								<div class = "col-xs-5">
+								<label class = "control-label col-xs-5 col-sm-5 col-md-3" for = "id_tutormodal_mobile">Re-enter:</label>
+								<div class = "col-xs-7 col-sm-7 col-md-5">
 									<input type = "password" class = "form-control" id = "id_tutormodal_newpswd_reenter" placeholder = "Re-enter your new password.">
 								</div>
 							</div>
@@ -198,6 +205,7 @@
 					</div>
 				</div>
 				<div class = "modal-footer">
+					<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
 				</div>
 			</div>
 		</div>
@@ -232,13 +240,14 @@
 			</div>
 			<div class="collapse navbar-collapse" id="collapse_navbar">
 				<ul class = "nav navbar-nav" id = "id_navbar_ttcontrol">
+					<li><a href = "#" id = "nav_rename"><span class = "glyphicon glyphicon-pencil"></span> Rename</a></li>
 					<li><a href = "#" id = "nav_new"><span class = "glyphicon glyphicon-file"></span> New</a></li>
 					<li><a href = "#" id = "nav_saveacopy"><span class = "glyphicon glyphicon-floppy-disk"></span> Save A Copy</a></li>
 					<li><a href = "#" id = "nav_load"><span class = "glyphicon glyphicon-folder-open"></span> Load</a></li>
 					<li><a href = "#" id = "nav_filter"><span class = "glyphicon glyphicon-filter"></span> Filter</a></li>
 				</ul>
 				<ul class = "nav navbar-nav navbar-right">
-					<li><a href = "#" id = "nav_students">Students Profiles</a></li>
+					<!--<li><a href = "#" id = "nav_students">Students Profiles</a></li>-->
 					<li><a href = "#" id = "nav_profiles"><span class = "glyphicon glyphicon-user"></span> Tutor Profile</a></li>
 					<li><a href = "#" id = "nav_login"><span class="glyphicon glyphicon-log-in"></span> Login</a></li>
 				</ul>
@@ -248,7 +257,7 @@
 	<div class = "container-fluid" id = "id_body_container">
 		<div class = "row" id = "id_scaffold_overlay_wrapper">
 			<div class = "col-xs-12 row" id = "id_table_scaffold_wrapper">
-				<div class = "scaffold_parent col-sm-2 col-md-1">
+				<div class = "scaffold_parent col-xs-3 col-sm-3 col-md-1">
 					<table class = "table table-condensed scaffold" id = "id_table_scaffold">
 						<tr>
 							<th>&nbsp;</th>
@@ -333,244 +342,250 @@
 						</tr>
 					</table>
 				</div>
-				
-				<div class = "scaffold_parent col-sm-10 col-md-1">
-					<table class = "table table-condensed scaffold" id = "id_monday_scaffold">
-						<tr><th>m</th></tr>
-						<tr><td>&nbsp;</td></tr>
-						<tr><td>&nbsp;</td></tr>
-						<tr><td>&nbsp;</td></tr>
-						<tr><td>&nbsp;</td></tr>
-						<tr><td>&nbsp;</td></tr>
-						<tr><td>&nbsp;</td></tr>
-						<tr><td>&nbsp;</td></tr>
-						<tr><td>&nbsp;</td></tr>
-						<tr><td>&nbsp;</td></tr>
-						<tr><td>&nbsp;</td></tr>
-						<tr><td>&nbsp;</td></tr>
-						<tr><td>&nbsp;</td></tr>
-						<tr><td>&nbsp;</td></tr>
-						<tr><td>&nbsp;</td></tr>
-						<tr><td>&nbsp;</td></tr>
-						<tr><td>&nbsp;</td></tr>
-						<tr><td>&nbsp;</td></tr>
-						<tr><td>&nbsp;</td></tr>
-						<tr><td>&nbsp;</td></tr>
-						<tr><td>&nbsp;</td></tr>
-						<tr><td>&nbsp;</td></tr>
-						<tr><td>&nbsp;</td></tr>
-						<tr><td>&nbsp;</td></tr>
-						<tr><td>&nbsp;</td></tr>
-						<tr><td>&nbsp;</td></tr>
-						<tr><td>&nbsp;</td></tr>
-					</table>
+				<div id = "id_scaffold_parent_viewport" class = "col-xs-9 col-sm-9 col-md-11">
+					<div id = "id_scaffold_parent_carousel">
+						<div class = "scaffold_parent col-xs-12 col-sm-12 col-md-1">
+							<table class = "table table-condensed scaffold" id = "id_monday_scaffold">
+								<tr><th>m</th></tr>
+								<tr><td>&nbsp;</td></tr>
+								<tr><td>&nbsp;</td></tr>
+								<tr><td>&nbsp;</td></tr>
+								<tr><td>&nbsp;</td></tr>
+								<tr><td>&nbsp;</td></tr>
+								<tr><td>&nbsp;</td></tr>
+								<tr><td>&nbsp;</td></tr>
+								<tr><td>&nbsp;</td></tr>
+								<tr><td>&nbsp;</td></tr>
+								<tr><td>&nbsp;</td></tr>
+								<tr><td>&nbsp;</td></tr>
+								<tr><td>&nbsp;</td></tr>
+								<tr><td>&nbsp;</td></tr>
+								<tr><td>&nbsp;</td></tr>
+								<tr><td>&nbsp;</td></tr>
+								<tr><td>&nbsp;</td></tr>
+								<tr><td>&nbsp;</td></tr>
+								<tr><td>&nbsp;</td></tr>
+								<tr><td>&nbsp;</td></tr>
+								<tr><td>&nbsp;</td></tr>
+								<tr><td>&nbsp;</td></tr>
+								<tr><td>&nbsp;</td></tr>
+								<tr><td>&nbsp;</td></tr>
+								<tr><td>&nbsp;</td></tr>
+								<tr><td>&nbsp;</td></tr>
+								<tr><td>&nbsp;</td></tr>
+							</table>
+						</div>
+						<div class = "scaffold_parent col-xs-12 col-sm-12 col-md-1">
+							<table class = "table table-condensed scaffold" id = "id_monday_scaffold">
+								<tr><th>t</th></tr>
+								<tr><td>&nbsp;</td></tr>
+								<tr><td>&nbsp;</td></tr>
+								<tr><td>&nbsp;</td></tr>
+								<tr><td>&nbsp;</td></tr>
+								<tr><td>&nbsp;</td></tr>
+								<tr><td>&nbsp;</td></tr>
+								<tr><td>&nbsp;</td></tr>
+								<tr><td>&nbsp;</td></tr>
+								<tr><td>&nbsp;</td></tr>
+								<tr><td>&nbsp;</td></tr>
+								<tr><td>&nbsp;</td></tr>
+								<tr><td>&nbsp;</td></tr>
+								<tr><td>&nbsp;</td></tr>
+								<tr><td>&nbsp;</td></tr>
+								<tr><td>&nbsp;</td></tr>
+								<tr><td>&nbsp;</td></tr>
+								<tr><td>&nbsp;</td></tr>
+								<tr><td>&nbsp;</td></tr>
+								<tr><td>&nbsp;</td></tr>
+								<tr><td>&nbsp;</td></tr>
+								<tr><td>&nbsp;</td></tr>
+								<tr><td>&nbsp;</td></tr>
+								<tr><td>&nbsp;</td></tr>
+								<tr><td>&nbsp;</td></tr>
+								<tr><td>&nbsp;</td></tr>
+								<tr><td>&nbsp;</td></tr>
+							</table>
+						
+						</div>
+						<div class = "scaffold_parent col-xs-12 col-sm-12 col-md-1">
+							<table class = "table table-condensed scaffold" id = "id_monday_scaffold">
+								<tr><th>w</th></tr>
+								<tr><td>&nbsp;</td></tr>
+								<tr><td>&nbsp;</td></tr>
+								<tr><td>&nbsp;</td></tr>
+								<tr><td>&nbsp;</td></tr>
+								<tr><td>&nbsp;</td></tr>
+								<tr><td>&nbsp;</td></tr>
+								<tr><td>&nbsp;</td></tr>
+								<tr><td>&nbsp;</td></tr>
+								<tr><td>&nbsp;</td></tr>
+								<tr><td>&nbsp;</td></tr>
+								<tr><td>&nbsp;</td></tr>
+								<tr><td>&nbsp;</td></tr>
+								<tr><td>&nbsp;</td></tr>
+								<tr><td>&nbsp;</td></tr>
+								<tr><td>&nbsp;</td></tr>
+								<tr><td>&nbsp;</td></tr>
+								<tr><td>&nbsp;</td></tr>
+								<tr><td>&nbsp;</td></tr>
+								<tr><td>&nbsp;</td></tr>
+								<tr><td>&nbsp;</td></tr>
+								<tr><td>&nbsp;</td></tr>
+								<tr><td>&nbsp;</td></tr>
+								<tr><td>&nbsp;</td></tr>
+								<tr><td>&nbsp;</td></tr>
+								<tr><td>&nbsp;</td></tr>
+								<tr><td>&nbsp;</td></tr>
+							</table>
+						
+						</div>
+						<div class = "scaffold_parent col-xs-12 col-sm-12 col-md-1">
+							<table class = "table table-condensed scaffold" id = "id_monday_scaffold">
+								<tr><th>t</th></tr>
+								<tr><td>&nbsp;</td></tr>
+								<tr><td>&nbsp;</td></tr>
+								<tr><td>&nbsp;</td></tr>
+								<tr><td>&nbsp;</td></tr>
+								<tr><td>&nbsp;</td></tr>
+								<tr><td>&nbsp;</td></tr>
+								<tr><td>&nbsp;</td></tr>
+								<tr><td>&nbsp;</td></tr>
+								<tr><td>&nbsp;</td></tr>
+								<tr><td>&nbsp;</td></tr>
+								<tr><td>&nbsp;</td></tr>
+								<tr><td>&nbsp;</td></tr>
+								<tr><td>&nbsp;</td></tr>
+								<tr><td>&nbsp;</td></tr>
+								<tr><td>&nbsp;</td></tr>
+								<tr><td>&nbsp;</td></tr>
+								<tr><td>&nbsp;</td></tr>
+								<tr><td>&nbsp;</td></tr>
+								<tr><td>&nbsp;</td></tr>
+								<tr><td>&nbsp;</td></tr>
+								<tr><td>&nbsp;</td></tr>
+								<tr><td>&nbsp;</td></tr>
+								<tr><td>&nbsp;</td></tr>
+								<tr><td>&nbsp;</td></tr>
+								<tr><td>&nbsp;</td></tr>
+								<tr><td>&nbsp;</td></tr>
+							</table>
+						
+						</div>
+						<div class = "scaffold_parent col-xs-12 col-sm-12 col-md-1">
+							<table class = "table table-condensed scaffold" id = "id_monday_scaffold">
+								<tr><th>f</th></tr>
+								<tr><td>&nbsp;</td></tr>
+								<tr><td>&nbsp;</td></tr>
+								<tr><td>&nbsp;</td></tr>
+								<tr><td>&nbsp;</td></tr>
+								<tr><td>&nbsp;</td></tr>
+								<tr><td>&nbsp;</td></tr>
+								<tr><td>&nbsp;</td></tr>
+								<tr><td>&nbsp;</td></tr>
+								<tr><td>&nbsp;</td></tr>
+								<tr><td>&nbsp;</td></tr>
+								<tr><td>&nbsp;</td></tr>
+								<tr><td>&nbsp;</td></tr>
+								<tr><td>&nbsp;</td></tr>
+								<tr><td>&nbsp;</td></tr>
+								<tr><td>&nbsp;</td></tr>
+								<tr><td>&nbsp;</td></tr>
+								<tr><td>&nbsp;</td></tr>
+								<tr><td>&nbsp;</td></tr>
+								<tr><td>&nbsp;</td></tr>
+								<tr><td>&nbsp;</td></tr>
+								<tr><td>&nbsp;</td></tr>
+								<tr><td>&nbsp;</td></tr>
+								<tr><td>&nbsp;</td></tr>
+								<tr><td>&nbsp;</td></tr>
+								<tr><td>&nbsp;</td></tr>
+								<tr><td>&nbsp;</td></tr>
+							</table>
+						
+						</div>
+						<div class = "scaffold_parent col-xs-12 col-sm-12 col-md-3">
+							<table class = "table table-condensed scaffold" id = "id_monday_scaffold">
+								<tr><th>s</th></tr>
+								<tr><td>&nbsp;</td></tr>
+								<tr><td>&nbsp;</td></tr>
+								<tr><td>&nbsp;</td></tr>
+								<tr><td>&nbsp;</td></tr>
+								<tr><td>&nbsp;</td></tr>
+								<tr><td>&nbsp;</td></tr>
+								<tr><td>&nbsp;</td></tr>
+								<tr><td>&nbsp;</td></tr>
+								<tr><td>&nbsp;</td></tr>
+								<tr><td>&nbsp;</td></tr>
+								<tr><td>&nbsp;</td></tr>
+								<tr><td>&nbsp;</td></tr>
+								<tr><td>&nbsp;</td></tr>
+								<tr><td>&nbsp;</td></tr>
+								<tr><td>&nbsp;</td></tr>
+								<tr><td>&nbsp;</td></tr>
+								<tr><td>&nbsp;</td></tr>
+								<tr><td>&nbsp;</td></tr>
+								<tr><td>&nbsp;</td></tr>
+								<tr><td>&nbsp;</td></tr>
+								<tr><td>&nbsp;</td></tr>
+								<tr><td>&nbsp;</td></tr>
+								<tr><td>&nbsp;</td></tr>
+								<tr><td>&nbsp;</td></tr>
+								<tr><td>&nbsp;</td></tr>
+								<tr><td>&nbsp;</td></tr>
+							</table>
+						
+						</div>
+						<div class = "scaffold_parent col-xs-12 col-sm-12 col-md-3">
+							<table class = "table table-condensed scaffold" id = "id_monday_scaffold">
+								<tr><th>s</th></tr>
+								<tr><td>&nbsp;</td></tr>
+								<tr><td>&nbsp;</td></tr>
+								<tr><td>&nbsp;</td></tr>
+								<tr><td>&nbsp;</td></tr>
+								<tr><td>&nbsp;</td></tr>
+								<tr><td>&nbsp;</td></tr>
+								<tr><td>&nbsp;</td></tr>
+								<tr><td>&nbsp;</td></tr>
+								<tr><td>&nbsp;</td></tr>
+								<tr><td>&nbsp;</td></tr>
+								<tr><td>&nbsp;</td></tr>
+								<tr><td>&nbsp;</td></tr>
+								<tr><td>&nbsp;</td></tr>
+								<tr><td>&nbsp;</td></tr>
+								<tr><td>&nbsp;</td></tr>
+								<tr><td>&nbsp;</td></tr>
+								<tr><td>&nbsp;</td></tr>
+								<tr><td>&nbsp;</td></tr>
+								<tr><td>&nbsp;</td></tr>
+								<tr><td>&nbsp;</td></tr>
+								<tr><td>&nbsp;</td></tr>
+								<tr><td>&nbsp;</td></tr>
+								<tr><td>&nbsp;</td></tr>
+								<tr><td>&nbsp;</td></tr>
+								<tr><td>&nbsp;</td></tr>
+								<tr><td>&nbsp;</td></tr>
+							</table>
+						
+						</div>
+					</div>
 				</div>
-				<div class = "scaffold_parent col-sm-10 col-md-1">
-					<table class = "table table-condensed scaffold" id = "id_monday_scaffold">
-						<tr><th>t</th></tr>
-						<tr><td>&nbsp;</td></tr>
-						<tr><td>&nbsp;</td></tr>
-						<tr><td>&nbsp;</td></tr>
-						<tr><td>&nbsp;</td></tr>
-						<tr><td>&nbsp;</td></tr>
-						<tr><td>&nbsp;</td></tr>
-						<tr><td>&nbsp;</td></tr>
-						<tr><td>&nbsp;</td></tr>
-						<tr><td>&nbsp;</td></tr>
-						<tr><td>&nbsp;</td></tr>
-						<tr><td>&nbsp;</td></tr>
-						<tr><td>&nbsp;</td></tr>
-						<tr><td>&nbsp;</td></tr>
-						<tr><td>&nbsp;</td></tr>
-						<tr><td>&nbsp;</td></tr>
-						<tr><td>&nbsp;</td></tr>
-						<tr><td>&nbsp;</td></tr>
-						<tr><td>&nbsp;</td></tr>
-						<tr><td>&nbsp;</td></tr>
-						<tr><td>&nbsp;</td></tr>
-						<tr><td>&nbsp;</td></tr>
-						<tr><td>&nbsp;</td></tr>
-						<tr><td>&nbsp;</td></tr>
-						<tr><td>&nbsp;</td></tr>
-						<tr><td>&nbsp;</td></tr>
-						<tr><td>&nbsp;</td></tr>
-					</table>
-				
-				</div>
-				<div class = "scaffold_parent col-sm-10 col-md-1">
-					<table class = "table table-condensed scaffold" id = "id_monday_scaffold">
-						<tr><th>w</th></tr>
-						<tr><td>&nbsp;</td></tr>
-						<tr><td>&nbsp;</td></tr>
-						<tr><td>&nbsp;</td></tr>
-						<tr><td>&nbsp;</td></tr>
-						<tr><td>&nbsp;</td></tr>
-						<tr><td>&nbsp;</td></tr>
-						<tr><td>&nbsp;</td></tr>
-						<tr><td>&nbsp;</td></tr>
-						<tr><td>&nbsp;</td></tr>
-						<tr><td>&nbsp;</td></tr>
-						<tr><td>&nbsp;</td></tr>
-						<tr><td>&nbsp;</td></tr>
-						<tr><td>&nbsp;</td></tr>
-						<tr><td>&nbsp;</td></tr>
-						<tr><td>&nbsp;</td></tr>
-						<tr><td>&nbsp;</td></tr>
-						<tr><td>&nbsp;</td></tr>
-						<tr><td>&nbsp;</td></tr>
-						<tr><td>&nbsp;</td></tr>
-						<tr><td>&nbsp;</td></tr>
-						<tr><td>&nbsp;</td></tr>
-						<tr><td>&nbsp;</td></tr>
-						<tr><td>&nbsp;</td></tr>
-						<tr><td>&nbsp;</td></tr>
-						<tr><td>&nbsp;</td></tr>
-						<tr><td>&nbsp;</td></tr>
-					</table>
-				
-				</div>
-				<div class = "scaffold_parent col-sm-10 col-md-1">
-					<table class = "table table-condensed scaffold" id = "id_monday_scaffold">
-						<tr><th>t</th></tr>
-						<tr><td>&nbsp;</td></tr>
-						<tr><td>&nbsp;</td></tr>
-						<tr><td>&nbsp;</td></tr>
-						<tr><td>&nbsp;</td></tr>
-						<tr><td>&nbsp;</td></tr>
-						<tr><td>&nbsp;</td></tr>
-						<tr><td>&nbsp;</td></tr>
-						<tr><td>&nbsp;</td></tr>
-						<tr><td>&nbsp;</td></tr>
-						<tr><td>&nbsp;</td></tr>
-						<tr><td>&nbsp;</td></tr>
-						<tr><td>&nbsp;</td></tr>
-						<tr><td>&nbsp;</td></tr>
-						<tr><td>&nbsp;</td></tr>
-						<tr><td>&nbsp;</td></tr>
-						<tr><td>&nbsp;</td></tr>
-						<tr><td>&nbsp;</td></tr>
-						<tr><td>&nbsp;</td></tr>
-						<tr><td>&nbsp;</td></tr>
-						<tr><td>&nbsp;</td></tr>
-						<tr><td>&nbsp;</td></tr>
-						<tr><td>&nbsp;</td></tr>
-						<tr><td>&nbsp;</td></tr>
-						<tr><td>&nbsp;</td></tr>
-						<tr><td>&nbsp;</td></tr>
-						<tr><td>&nbsp;</td></tr>
-					</table>
-				
-				</div>
-				<div class = "scaffold_parent col-sm-10 col-md-1">
-					<table class = "table table-condensed scaffold" id = "id_monday_scaffold">
-						<tr><th>f</th></tr>
-						<tr><td>&nbsp;</td></tr>
-						<tr><td>&nbsp;</td></tr>
-						<tr><td>&nbsp;</td></tr>
-						<tr><td>&nbsp;</td></tr>
-						<tr><td>&nbsp;</td></tr>
-						<tr><td>&nbsp;</td></tr>
-						<tr><td>&nbsp;</td></tr>
-						<tr><td>&nbsp;</td></tr>
-						<tr><td>&nbsp;</td></tr>
-						<tr><td>&nbsp;</td></tr>
-						<tr><td>&nbsp;</td></tr>
-						<tr><td>&nbsp;</td></tr>
-						<tr><td>&nbsp;</td></tr>
-						<tr><td>&nbsp;</td></tr>
-						<tr><td>&nbsp;</td></tr>
-						<tr><td>&nbsp;</td></tr>
-						<tr><td>&nbsp;</td></tr>
-						<tr><td>&nbsp;</td></tr>
-						<tr><td>&nbsp;</td></tr>
-						<tr><td>&nbsp;</td></tr>
-						<tr><td>&nbsp;</td></tr>
-						<tr><td>&nbsp;</td></tr>
-						<tr><td>&nbsp;</td></tr>
-						<tr><td>&nbsp;</td></tr>
-						<tr><td>&nbsp;</td></tr>
-						<tr><td>&nbsp;</td></tr>
-					</table>
-				
-				</div>
-				<div class = "scaffold_parent col-sm-10 col-md-3">
-					<table class = "table table-condensed scaffold" id = "id_monday_scaffold">
-						<tr><th>s</th></tr>
-						<tr><td>&nbsp;</td></tr>
-						<tr><td>&nbsp;</td></tr>
-						<tr><td>&nbsp;</td></tr>
-						<tr><td>&nbsp;</td></tr>
-						<tr><td>&nbsp;</td></tr>
-						<tr><td>&nbsp;</td></tr>
-						<tr><td>&nbsp;</td></tr>
-						<tr><td>&nbsp;</td></tr>
-						<tr><td>&nbsp;</td></tr>
-						<tr><td>&nbsp;</td></tr>
-						<tr><td>&nbsp;</td></tr>
-						<tr><td>&nbsp;</td></tr>
-						<tr><td>&nbsp;</td></tr>
-						<tr><td>&nbsp;</td></tr>
-						<tr><td>&nbsp;</td></tr>
-						<tr><td>&nbsp;</td></tr>
-						<tr><td>&nbsp;</td></tr>
-						<tr><td>&nbsp;</td></tr>
-						<tr><td>&nbsp;</td></tr>
-						<tr><td>&nbsp;</td></tr>
-						<tr><td>&nbsp;</td></tr>
-						<tr><td>&nbsp;</td></tr>
-						<tr><td>&nbsp;</td></tr>
-						<tr><td>&nbsp;</td></tr>
-						<tr><td>&nbsp;</td></tr>
-						<tr><td>&nbsp;</td></tr>
-					</table>
-				
-				</div>
-				<div class = "scaffold_parent col-sm-10 col-md-3">
-					<table class = "table table-condensed scaffold" id = "id_monday_scaffold">
-						<tr><th>s</th></tr>
-						<tr><td>&nbsp;</td></tr>
-						<tr><td>&nbsp;</td></tr>
-						<tr><td>&nbsp;</td></tr>
-						<tr><td>&nbsp;</td></tr>
-						<tr><td>&nbsp;</td></tr>
-						<tr><td>&nbsp;</td></tr>
-						<tr><td>&nbsp;</td></tr>
-						<tr><td>&nbsp;</td></tr>
-						<tr><td>&nbsp;</td></tr>
-						<tr><td>&nbsp;</td></tr>
-						<tr><td>&nbsp;</td></tr>
-						<tr><td>&nbsp;</td></tr>
-						<tr><td>&nbsp;</td></tr>
-						<tr><td>&nbsp;</td></tr>
-						<tr><td>&nbsp;</td></tr>
-						<tr><td>&nbsp;</td></tr>
-						<tr><td>&nbsp;</td></tr>
-						<tr><td>&nbsp;</td></tr>
-						<tr><td>&nbsp;</td></tr>
-						<tr><td>&nbsp;</td></tr>
-						<tr><td>&nbsp;</td></tr>
-						<tr><td>&nbsp;</td></tr>
-						<tr><td>&nbsp;</td></tr>
-						<tr><td>&nbsp;</td></tr>
-						<tr><td>&nbsp;</td></tr>
-						<tr><td>&nbsp;</td></tr>
-					</table>
-				
-				</div>
-				
 				
 				
 			</div>
 			
 			<div class = "col-xs-12 row" id = "id_table_scaffold_overlay">
-				<div class = "col-sm-2 col-md-1"></div>
-				<div class = "scaffold_overlay_unit col-sm-10 col-md-1"></div>
-				<div class = "scaffold_overlay_unit col-sm-10 col-md-1"></div>
-				<div class = "scaffold_overlay_unit col-sm-10 col-md-1"></div>
-				<div class = "scaffold_overlay_unit col-sm-10 col-md-1"></div>
-				<div class = "scaffold_overlay_unit col-sm-10 col-md-1"></div>
-				<div class = "scaffold_overlay_unit col-sm-10 col-md-3"></div>
-				<div class = "scaffold_overlay_unit col-sm-10 col-md-3"></div>
+				<div class = "col-xs-3 col-sm-3 col-md-1"></div>
+				<div id = "id_scaffold_overlay_viewport" class = "col-xs-9 col-sm-9 col-md-11">
+					<div id = "id_scaffold_overlay_carousel">
+						<div class = "scaffold_overlay_unit col-xs-9 col-sm-9 col-md-1"></div>
+						<div class = "scaffold_overlay_unit col-xs-9 col-sm-9 col-md-1"></div>
+						<div class = "scaffold_overlay_unit col-xs-9 col-sm-9 col-md-1"></div>
+						<div class = "scaffold_overlay_unit col-xs-9 col-sm-9 col-md-1"></div>
+						<div class = "scaffold_overlay_unit col-xs-9 col-sm-9 col-md-1"></div>
+						<div class = "scaffold_overlay_unit col-xs-9 col-sm-9 col-md-3"></div>
+						<div class = "scaffold_overlay_unit col-xs-9 col-sm-9 col-md-3"></div>
+					</div>
+				</div>
 			</div>
 			
 		</div>
@@ -580,7 +595,7 @@
 			<div id="id_pleaseloginfirst" class = "col-sm-12 col-md-4 col-md-offset-4">
 				<img src = "includes/pleaseloginfirst.png" class = "img-circle">
 			</div>
-			<div class = "container col-sm-12 col-md-5" id = "id_edit_block_popup">
+			<div class = "container col-xs-10 col-sm-10 col-md-5" id = "id_edit_block_popup">
 			<h2>Edit Class</h2>
 				<form role="form" class = "form-horizontal">
 					<div class = "form-group">

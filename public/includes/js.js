@@ -6,6 +6,54 @@ var socket = io.connect('http://timetable-gened.rhcloud.com:8000/',function(){
 //var socket = io();
 $(document).ready(function(){
 	
+	if(window.innerWidth>=768){
+		/* large device */
+		$('#id_scaffold_overlay_carousel').css('width','100%');
+		$('#id_scaffold_parent_carousel').css('width','100%');
+		
+	}else{
+		/* small device has no need for hoverinfo */
+		$('#hoverinfo').remove();
+		
+		/* when a modal is dismissed, all modals are dismissed (weird interactions between jqm and bootstrap modal in that when a modal is dismissed, other active modals freezes) */
+		$('.modal').on('hidden.bs.modal',function(){
+			$('.modal').modal('hide');
+		})
+		
+		var viewportwidth = parseInt($('#id_scaffold_parent_viewport').css('width'));
+		$('#id_scaffold_overlay_carousel').css('width',viewportwidth*7);
+		$('#id_scaffold_parent_carousel').css('width',viewportwidth*7);
+		$('#id_scaffold_overlay_carousel').children('div').css('width','14.28571428571429%');
+		$('#id_scaffold_parent_carousel').children('div').css('width','14.28571428571429%');
+		$('#id_scaffold_overlay_carousel,#id_scaffold_parent_carousel').css('left','0');
+		
+		var index = 1;
+		$('#id_scaffold_overlay_viewport').on('swipeleft',function(){
+			var step = parseInt($('#id_scaffold_overlay_viewport').css('width'));
+			var original = parseInt($('#id_scaffold_overlay_carousel').css('left'));
+			if(index==7){
+				$('#id_scaffold_overlay_carousel,#id_scaffold_parent_carousel').animate({'left':(original-step/3)},200,function(){
+					$('#id_scaffold_overlay_carousel,#id_scaffold_parent_carousel').animate({'left':original},100,function(){});
+				});
+			}else{
+				$('#id_scaffold_overlay_carousel,#id_scaffold_parent_carousel').animate({'left':original-step},400,function(){});
+				index += 1;
+			}
+		});
+		$('#id_scaffold_overlay_viewport').on('swiperight',function(){
+			var step = parseInt($('#id_scaffold_overlay_viewport').css('width'));
+			var original = parseInt($('#id_scaffold_overlay_carousel').css('left'));
+			if(index==1){
+				$('#id_scaffold_overlay_carousel,#id_scaffold_parent_carousel').animate({'left':(original+step/3)},200,function(){
+					$('#id_scaffold_overlay_carousel,#id_scaffold_parent_carousel').animate({'left':original},100,function(){});
+				});
+			}else{
+				$('#id_scaffold_overlay_carousel,#id_scaffold_parent_carousel').animate({'left':original+step},400,function(){});
+				index -= 1;
+			}
+		});
+	}
+	
 	var loginhandler = {
 		'show.bs.modal'	: function(){
 			$('#id_screen,#id_pleaseloginfirst').animate({'opacity':'0.0'},400,function(){
@@ -19,6 +67,32 @@ $(document).ready(function(){
 	}
 	
 	$(window).resize(function(){
+		
+		if(window.innerWidth>=768){
+			/* large device */
+			$('#id_scaffold_overlay_carousel').css('width','100%');
+			$('#id_scaffold_parent_carousel').css('width','100%');
+			
+		}else{
+			/* small device */
+			var viewportwidth = parseInt($('#id_scaffold_parent_viewport').css('width'));
+			$('#id_scaffold_overlay_carousel').css('width',viewportwidth*7);
+			$('#id_scaffold_parent_carousel').css('width',viewportwidth*7);
+			$('#id_scaffold_overlay_carousel').children('div').css('width','14.28571428571429%');
+			$('#id_scaffold_parent_carousel').children('div').css('width','14.28571428571429%');
+			$(document).on('swipeleft',function(){
+				var step = parseInt($('#id_scaffold_overlay_viewport').css('width'));
+				var original = parseInt($('#id_scaffold_overlay_carousel').css('left'));
+				$('#id_scaffold_overlay_carousel').css('left',original+step);
+				$('#id_scaffold_parent_carousel').css('left',original+step);
+			});
+			$(document).on('swiperight',function(){
+				var step = parseInt($('#id_scaffold_overlay_viewport').css('width'));
+				var original = parseInt($('#id_scaffold_overlay_carousel').css('left'));
+				$('#id_scaffold_overlay_carousel').css('left',original-step);
+				$('#id_scaffold_parent_carousel').css('left',original-step);	
+			});
+		}
 		rearrange_blocks();
 	});
 	
@@ -456,7 +530,7 @@ function tutor_lvl1_binding(){
 	});
 	
 	socket.on('clearblocks',function(){
-		$('#id_table_scaffold_overlay div').empty();
+		$('#id_scaffold_overlay_carousel').children('div').empty();
 	});
 	
 	socket.on('server_to_all_tt_deleted',function(){
@@ -474,18 +548,18 @@ function tutor_lvl1_binding(){
 		if(socket.admin==2){
 			var admincontrol = 
 				'<div class = "form-group">'+
-					'<label class = "control-label col-xs-3" for = "id_tutormodal_admin">Admin Level:</label>'+
-					'<div class = "col-xs-2">'+
+					'<label class = "control-label col-xs-5 col-sm-5 col-md-3" for = "id_tutormodal_admin">Admin Level:</label>'+
+					'<div class = "col-xs-3 col-sm-3 col-md-2 col-lg-2">'+
 						'<select class = "form-control" id = "id_tutormodal_admin">'+
 							'<option>0</option>'+
 							'<option>1</option>'+
 							'<option>2</option>'+
 						'</select>'+
 					'</div>'+
-					'<div class = "col-xs-7">0 - tutor<br> 1 - timetable archivist<br> 2 - skynet</div>'+
+					'<div class = "col-xs-offset-3 col-sm-offset-3 col-xs-9 col-sm-9 col-md-7 col-lg-7">0 - tutor<br> 1 - timetable archivist<br> 2 - skynet</div>'+
 				'</div>';
 			if($('#id_tutormodal_admin').length==0){
-				$(admincontrol).insertAfter($('#id_tutormodal_mobile').parent().parent());
+				$(admincontrol).insertAfter($('#id_admin_anchor'));
 			}
 		}
 	});
@@ -654,7 +728,7 @@ function tutor_lvl1_binding(){
 	});
 	
 	/* rename the timetable */
-	$('#nav_name').click(function(){
+	$('#nav_rename').click(function(){
 		$('#nav_tt').modal('show')
 		.on('shown.bs.modal',function(){
 			$('#id_input_modal_tt').val($('#nav_name').html());
@@ -722,16 +796,10 @@ function tutor_lvl1_binding(){
 	
 	socket.on('append_tutor_slot',function(o){
 		if(socket.admin==0&&socket.name==o){
-			$('#id_edit_block_popup #id_tutorname').append('<option>'+o+'</option>');
+			$('#id_edit_block_popup #id_tutorname').append('<option id = "id_tutorname_'+o.replace(/ /g,'')+'">'+o+'</option>');
 		}else if (socket.admin==1||socket.admin==2){
-			$('#id_edit_block_popup #id_tutorname').append('<option>'+o+'</option>');			
+			$('#id_edit_block_popup #id_tutorname').append('<option id = "id_tutorname_'+o.replace(/ /g,'')+'">'+o+'</option>');			
 		}
-	});
-	
-	socket.on('append_admin0_tutor_slot',function(o){
-		$('#id_edit_block_popup #id_tutorname')
-		.append('<option>'+o+'</option>');
-		$('#id_edit_block_popup #id_tutorname').val(o);
 	});
 	
 	$('#id_screen,#cancel_button').click(function(){
@@ -766,10 +834,10 @@ function check_same_pswd(){
 
 function append_tutor_entry(json){	
 	$('#modal_tutor_row').append('<div class = "col-xs-12 modal_tutor_unit" id = "'+json.hashed_id+'">'+
-	'<div class = "col-xs-3">'+json.name+'</div>'+
-	'<div class = "col-xs-3">'+json.mobileno+'</div>'+
-	'<div class = "col-xs-4">'+json.email+'</div>'+
-	'<div class = "col-xs-2"><button class = "btn btn-danger">Delete</button></div>'+
+	'<div class = "col-xs-7 col-sm-7 col-md-3">'+json.name+'</div>'+
+	'<div class = "hidden-xs hiddem-sm visible-md-3 visible-lg-3">'+json.mobileno+'</div>'+
+	'<div class = "hidden-xs hidden-sm visible-md-4 visible-lg-4">'+json.email+'</div>'+
+	'<div class = "col-xs-5 col-sm-5 col-md-2"><button class = "btn btn-danger">Delete</button></div>'+
 	'</div>');
 	
 	
@@ -873,7 +941,7 @@ function populate_modal_filter(){
 	$('#panel_tutor').children('div.panel-body').empty();
 	$('#panel_location').children('div.panel-body').empty();
 	
-	$('div#id_table_scaffold_overlay div div.lessonblock').each(function(){
+	$('div.lessonblock').each(function(){
 		populate_modal_filter_class($(this).children('.lessonblock_classname').html());
 		populate_modal_filter_tutor($(this).children('.lessonblock_tutorname').html());
 		populate_modal_filter_location($(this).children('.lessonblock_location').html());
@@ -1175,8 +1243,8 @@ function populate_tt_modal_input(i){
 	$('#nav_tt div.modal-body').append(
 	'<div class = "row">'+
 		'<div class = "form-group">'+
-			'<label class = "col-xs-2 control-label" for = "id_input_modal_tt">'+i+':</label>'+
-			'<div class = "col-xs-6">'+
+			'<label class = "control-label col-xs-5 col-sm-5 col-md-3" for = "id_input_modal_tt">'+i+':</label>'+
+			'<div class = "col-xs-7 col-sm-7 col-md-5">'+
 				'<input type = "text" data-placement="right" class = "modal-input form-control input-sm" id = "id_input_modal_tt">'+
 			'</div>'+
 		'</div>'+
@@ -1187,8 +1255,8 @@ function populate_tt_modal(jsonO){
 	for (i=0;i<Object.keys(jsonO).length;i++){
 		$('#modal_tt').append('<div id ="modal_load_tt_unit_'+i+'" class = "col-xs-12 modal_load_tt_unit'+ (jsonO[i][0]==$('#nav_name').html() ? ' activett' : '' )+'"></div>');
 		$('#modal_load_tt_unit_'+i)
-		.append('<div class = "col-xs-3">'+jsonO[i][0]+'</div>')
-		.append('<div class = "col-xs-7">'+jsonO[i][1].split('T')[0]+'</div>')
+		.append('<div class = "col-xs-7 col-sm-7 col-md-3">'+jsonO[i][0]+'</div>')
+		.append('<div class = "hidden-xs hidden-sm visible-md-7 visible-lg-7">'+jsonO[i][1].split('T')[0]+'</div>')
 	}
 }
 
@@ -1334,8 +1402,7 @@ function bind_fn_lessonblocks(){
 		$(document)
 		.on('mousemove',function(m){
 			var rm = relative_offsetY(m,'#id_table_scaffold');
-			var rmx = relative_offsetX(m,'#id_table_scaffold');
-			
+			var rmx = relative_offsetX(m,'#id_scaffold_overlay_carousel');
 			$('.activeblock').addClass('inprogress');
 			
 			if(flag == 'default'){
@@ -1418,7 +1485,7 @@ function bind_fn_lessonblocks(){
 function bind_fn_creating_blocks(){
 	
 	//binding overlay element with on mouse down event
-	$('#id_table_scaffold_overlay div:not(:first-child)').on('mousedown',function(d){
+	$('#id_scaffold_overlay_carousel').children('div').off('mousedown').on('mousedown',function(d){
 		
 		//if not a left click, terminate the function
 		if(d.which!=1||d.offsetY<35){return false;}
@@ -1469,6 +1536,9 @@ function populate_edit_block(){
 		}
 	});
 	
+	/* for mobile users */
+	//$('#id_tutorname_'+$('.activeblock span.lessonblock_tutorname').html().replace(/ /g,'')).prop('selected',true);
+	
 	/* if there is only 1 option in select tutors, then select it. This is either because a tutor with lvl0admin is logged in, or there really is only 1 tutor in the db  */
 	if($('#id_tutorname option').length==2){
 		$('#id_tutorname option:last-child').prop('selected',true);
@@ -1486,10 +1556,10 @@ function call_editblock(){
 
 	
 	/* position the dialogue */
-	if($('.activeblock').parent().index()<6){
-		$('#id_edit_block_popup').removeClass().addClass('container col-sm-12 col-md-5 col-md-offset-'+($('.activeblock').parent().index()+1));
-	}else if ($('.activeblock').parent().index()<8){
-		$('#id_edit_block_popup').removeClass().addClass('container col-sm-12 col-md-5 col-md-offset-'+(($('.activeblock').parent().index()-6)*3+1));		
+	if($('.activeblock').parent().index()<5){
+		$('#id_edit_block_popup').removeClass().addClass('container col-xs-offset-1 col-sm-offset-1 col-xs-11 col-sm-11 col-md-5 col-md-offset-'+($('.activeblock').parent().index()+2));
+	}else if ($('.activeblock').parent().index()<7){
+		$('#id_edit_block_popup').removeClass().addClass('container col-xs-offset-1 col-sm-offset-1 col-xs-11 col-sm-11 col-md-5 col-md-offset-'+(($('.activeblock').parent().index()-5)*3+1));		
 	}
 	$('#id_edit_block_popup').css('top',parseInt($('.activeblock').css('top'))-20);
 	var editblock_bottom = parseInt($('#id_edit_block_popup').css('top'))+parseInt($('#id_edit_block_popup').css('height'));
@@ -1497,6 +1567,9 @@ function call_editblock(){
 	
 	if(editblock_bottom>table_saffold_bottom){
 		$('#id_edit_block_popup').css('top',parseInt($('#id_edit_block_popup').css('top'))-editblock_bottom+table_saffold_bottom);
+	}
+	if(parseInt($('#id_edit_block_popup').css('top'))<0){
+		$('#id_edit_block_popup').css('top',0);
 	}
 	
 	/* parsing position to time */
@@ -1508,7 +1581,7 @@ function call_editblock(){
 	$('#id_endtime').val(cvt_dec_to_time(endtime));
 	
 	/* updating the parsed day to the relevant field inside the edit block dialogue */
-	$('#id_day_'+$('.activeblock').parent().index()).prop('selected',true);
+	$('#id_day_'+(Number($('.activeblock').parent().index())+1)).prop('selected',true);
 	
 	/* focusing on the first field inside the edit block dialogue */
 	$('#id_classname').focus();
@@ -1558,13 +1631,11 @@ function relative_offsetX(e,r){
 
 function round_off_offsetX(i){
 	var o;
-	
 		$('.scaffold_overlay_unit').each(function(){
 			if($(this).position().left-i<0&&$(this).position().left+parseInt($(this).css('width'))-i>0){
 				o = $(this);
 			}
 		});
-	
 	return o;
 }
 
@@ -1580,7 +1651,7 @@ function round_off_offsetY(i){
 }
 
 function rearrange_blocks(){
-	$('div#id_table_scaffold_overlay').children('div').each(function(){
+	$('#id_scaffold_overlay_carousel').children('div').each(function(){
 		var dayblock = $(this);
 		
 		for (i = 2;i<dayblock.children('div:not(.noshow)').length+1;i++){
@@ -1616,7 +1687,7 @@ function rearrange_blocks(){
 }
 
 function resize_blocks(){
-	$('div#id_table_scaffold_overlay').children('div').each(function(){
+	$('#id_scaffold_overlay_carousel').children('div').each(function(){
 		var max_concurr = 1;
 		var dayblock = $(this);
 		
@@ -1641,7 +1712,7 @@ function resize_blocks(){
 
 function stagger_blocks(){
 	$('div.lessonblock').css('left','0px');
-	$('div#id_table_scaffold_overlay').children('div').each(function(){
+	$('#id_scaffold_overlay_carousel').children('div').each(function(){
 		var dayblock = $(this);
 		var flag;
 		do{
@@ -1678,28 +1749,28 @@ function cvt_day_time_to_pos_height(day, starttime, endtime){
 	var height;
 	switch (day){
 		case 'Mon':
-			pos = $('#id_table_scaffold_overlay').children('div:nth-child(2)');
+			pos = $('#id_scaffold_overlay_carousel').children('div:nth-child(1)');
 		break;
 		case 'Tue':
-			pos = $('#id_table_scaffold_overlay').children('div:nth-child(3)');
+			pos = $('#id_scaffold_overlay_carousel').children('div:nth-child(2)');
 		break;
 		case 'Wed':
-			pos = $('#id_table_scaffold_overlay').children('div:nth-child(4)');
+			pos = $('#id_scaffold_overlay_carousel').children('div:nth-child(3)');
 		break;
 		case 'Thu':
-			pos = $('#id_table_scaffold_overlay').children('div:nth-child(5)');
+			pos = $('#id_scaffold_overlay_carousel').children('div:nth-child(4)');
 		break;
 		case 'Fri':
-			pos = $('#id_table_scaffold_overlay').children('div:nth-child(6)');
+			pos = $('#id_scaffold_overlay_carousel').children('div:nth-child(5)');
 		break;
 		case 'Sat':
-			pos = $('#id_table_scaffold_overlay').children('div:nth-child(7)');
+			pos = $('#id_scaffold_overlay_carousel').children('div:nth-child(6)');
 		break;
 		case 'Sun':
-			pos = $('#id_table_scaffold_overlay').children('div:nth-child(8)');
+			pos = $('#id_scaffold_overlay_carousel').children('div:nth-child(7)');
 		break;
 		default:
-			pos = $('#id_table_scaffold_overlay').children('div:nth-child(1)');
+			pos = $('#id_scaffold_overlay_carousel').children('div:nth-child(1)');
 		break;
 	}
 	var nthblock = starttime.split(':')[0]-8 < 0 ? 0 : starttime.split(':')[0]-8 > 14 ? 14 : starttime.split(':')[0]-8 ;

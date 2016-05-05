@@ -1,7 +1,5 @@
 /*  */
-body{
-overflow:hidden;
-}
+
 
 /* hidden for low level tutors/students */
 
@@ -170,9 +168,26 @@ position:relative;
 	border-right: 5px solid #444;
 	border-radius:10px;
 	display:none;
+	box-sizing:border-box;
+	z-index:10;
 	}
 
 /* scaffold */
+
+#id_scaffold_parent_viewport,
+#id_scaffold_overlay_viewport
+{
+overflow:hidden;
+position:relative;
+height:936px;
+}
+
+#id_scaffold_parent_carousel,
+#id_scaffold_overlay_carousel
+{
+position:absolute;
+}
+
 #id_scaffold_overlay_wrapper
 {
 height:100%;
