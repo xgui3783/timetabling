@@ -302,7 +302,7 @@ io.on('connection',function(socket){
 			socket.emit('server_to_client_update_failed', 'Err058, client not listening correctly. Usually a refresh will help solve the problem');
 		}
 	});
-	socket.on('save_existing_block',function(i){
+	socket.on('save_existing_block',function(i,callback){
 		if(check_listener(socket,i.timetablename)){
 			var tt_name=i.timetablename;
 			delete i.timetablename;
@@ -312,9 +312,11 @@ io.on('connection',function(socket){
 					return;
 				}
 				io.to(tt_name).emit('server_to_all_update_block',i);
+				callback('success');
 			})
 		}else{
 			socket.emit('server_to_client_update_failed', 'Err073, client not listening correctly. Usually a refresh will help solve the problem');
+			callback('failed');
 		}
 	});
 	socket.on('delete_existing_block',function(i){

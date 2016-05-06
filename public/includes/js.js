@@ -152,6 +152,7 @@ $(document).ready(function(){
 	$('#modal_edit_tutor')
 	.on('shown.bs.modal',function(){
 		$('#modal_edit_tutor .btn-success').off('click').click(function(){
+			$('#modal_edit_tutor .btn-success').prop('disabled',true);
 			var json = {
 				'hashed_id':$('#id_tutormodal_hashed_id').val(),
 				'name':$('#id_tutormodal_name').val(),
@@ -182,6 +183,7 @@ $(document).ready(function(){
 						}
 					}
 					socket.emit('update_existing_tutor',json,function(o){
+						$('#modal_edit_tutor .btn-success').prop('disabled',false);
 						switch(o){
 							case 'wrong_old_pswd':
 								$('#id_tutormodal_oldpswd')
@@ -223,6 +225,9 @@ $(document).ready(function(){
 					json['now']=$.sha256(Date.now());
 					json['newpswd']=$.sha256($('#id_tutormodal_newpswd').val());
 					socket.emit('add_new_tutor',json,function(o){
+						
+						$('#modal_edit_tutor .btn-success').prop('disabled',false);
+						
 						if(o=='add_new_tutor_complete'){
 							$('#modal_edit_tutor').modal('hide');
 							json['hashed_id']=json['now'];
@@ -514,12 +519,7 @@ function tutor_lvl1_binding(){
 	socket.on('server_to_client_rearrange_blocks',function(){
 		rearrange_blocks();
 				
-		$('#id_screen,#id_pleaseloginfirst').animate({'opacity':'0.0'},400,function(){
-			$('#id_edit_block_popup').css('display','block');
-			$('#id_screen').css('display','block');
-			$('#id_screen_container').css('display','none');
-			$('#id_pleaseloginfirst').css('display','none');
-		});		
+		dismiss_loading();
 	})
 	
 	socket.on('server_to_all_update_block',function(i){
@@ -717,7 +717,7 @@ function tutor_lvl1_binding(){
 		socket.emit('tt_load',function(jsonO){
 			populate_tt_modal(jsonO);
 			$('#modal_tt').children('div').each(function(){
-				$(this).append('<div class = "col-xs-2"><button type="button" class="delete_tt_button btn btn-danger" id="id_button_tt_delete_'+$(this).children('div:first-child').html()+'">Delete</button></div>');
+				$(this).append('<div class = "col-md-2"><button type="button" class="delete_tt_button btn btn-danger" id="id_button_tt_delete_'+$(this).children('div:first-child').html()+'">Delete</button></div>');
 			});
 			$('.modal_load_tt_unit').off('click').click(function(){
 				var jsonO = {};
@@ -725,6 +725,8 @@ function tutor_lvl1_binding(){
 				jsonO['newchannel']='tt_'+$(this).children('div:first-child').html();
 				socket.emit('tt_load_tt',jsonO);
 				$('#nav_tt').modal('hide');
+				
+				loading();
 			});
 			$('.delete_tt_button').off('click').click(function(){
 				if(confirm('Are you sure you want to delete this timetable?\n\nThis action cannot be undone.')){
@@ -767,6 +769,7 @@ function tutor_lvl1_binding(){
 	});
 	
 	$('#save_button').click(function(){
+		$(this).prop('disabled',true);
 		save_block();
 	});
 	
@@ -776,6 +779,20 @@ function tutor_lvl0_binding(){
 	
 	tutor_lvl1_binding();
 	$('#id_navbar_ttcontrol li').css('display','none');
+}
+
+function loading(){	
+	$('#id_pleaseloginfirst img').attr('src','/includes/loading.png');
+	$('#id_screen_container,#id_screen,#id_pleaseloginfirst').off().css({
+		'opacity'	:'0.0',
+		'display'	:'block'}).animate({'opacity':'0.7'},400,function(){
+	});	
+}
+
+function dismiss_loading(){
+	$('#id_screen,#id_pleaseloginfirst').off().animate({'opacity':'0.0'},400,function(){
+		$('#id_screen_container,#id_screen,#id_pleaseloginfirst').css('display','none');
+	});	
 }
 
 function check_same_pswd(){
@@ -788,10 +805,10 @@ function check_same_pswd(){
 
 function append_tutor_entry(json){	
 	$('#modal_tutor_row').append('<div class = "col-xs-12 modal_tutor_unit" id = "'+json.hashed_id+'">'+
-	'<div class = "col-xs-7 col-sm-7 col-md-3">'+json.name+'</div>'+
-	'<div class = "hidden-xs hiddem-sm visible-md-3 visible-lg-3">'+json.mobileno+'</div>'+
-	'<div class = "hidden-xs hidden-sm visible-md-4 visible-lg-4">'+json.email+'</div>'+
-	'<div class = "col-xs-5 col-sm-5 col-md-2"><button class = "btn btn-danger">Delete</button></div>'+
+	'<div class = "col-md-3">'+json.name+'</div>'+
+	'<div class = "col-md-3">'+json.mobileno+'</div>'+
+	'<div class = "col-md-4">'+json.email+'</div>'+
+	'<div class = "col-md-2"><button class = "btn btn-danger">Delete</button></div>'+
 	'</div>');
 	
 	
@@ -1130,8 +1147,8 @@ function populate_tt_modal_input(i){
 	$('#nav_tt div.modal-body').append(
 	'<div class = "row">'+
 		'<div class = "form-group">'+
-			'<label class = "control-label col-xs-5 col-sm-5 col-md-3" for = "id_input_modal_tt">'+i+':</label>'+
-			'<div class = "col-xs-7 col-sm-7 col-md-5">'+
+			'<label class = "control-label col-md-3" for = "id_input_modal_tt">'+i+':</label>'+
+			'<div class = "col-md-5">'+
 				'<input type = "text" data-placement="right" class = "modal-input form-control input-sm" id = "id_input_modal_tt">'+
 			'</div>'+
 		'</div>'+
@@ -1142,8 +1159,8 @@ function populate_tt_modal(jsonO){
 	for (i=0;i<Object.keys(jsonO).length;i++){
 		$('#modal_tt').append('<div id ="modal_load_tt_unit_'+i+'" class = "col-xs-12 modal_load_tt_unit'+ (jsonO[i][0]==$('#nav_name').html() ? ' activett' : '' )+'"></div>');
 		$('#modal_load_tt_unit_'+i)
-		.append('<div class = "col-xs-7 col-sm-7 col-md-3">'+jsonO[i][0]+'</div>')
-		.append('<div class = "hidden-xs hidden-sm visible-md-7 visible-lg-7">'+jsonO[i][1].split('T')[0]+'</div>')
+		.append('<div class = "col-md-3">'+jsonO[i][0]+'</div>')
+		.append('<div class = "col-md-7">'+jsonO[i][1].split('T')[0]+'</div>')
 	}
 }
 
@@ -1236,13 +1253,16 @@ function save_block(){
 	if($('.activeblock').hasClass('newblock')){
 		$('.activeblock').attr('id',$.sha256(Date.now()));
 		$.extend(item, {'hashed_id':$('.activeblock').attr('id')});
-		socket.emit('save_new_block',item);
+		socket.emit('save_new_block',item,function(o){
+			
+		});
 	}else{
 		$.extend(item, {'hashed_id':$('.activeblock').attr('id')});
-		socket.emit('save_existing_block',item);
+		socket.emit('save_existing_block',item,function(o){
+			
+		});
 	}
 	$('.activeblock').off().removeClass().addClass('inprogress').on('mousedown',function(){return false;});
-	
 	dismiss_editblock();
 }
 
@@ -1437,7 +1457,7 @@ function call_editblock(){
 	/* shows edit block dialogue */
 	$('#id_screen_container').css('display','block');
 	
-	$('#id_screen,#id_edit_block_popup').css('opacity','0.0');
+	$('#id_screen,#id_edit_block_popup').css({'display':'block','opacity':'0.0'});
 	$('#id_screen').animate({'opacity':'0.7'},200);
 	$('#id_edit_block_popup').animate({'opacity':'1.0'},400);
 

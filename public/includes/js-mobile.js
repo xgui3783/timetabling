@@ -12,6 +12,9 @@ $(document).ready(function(){
 	/* when a modal is dismissed, all modals are dismissed (weird interactions between jqm and bootstrap modal in that when a modal is dismissed, other active modals freezes) */
 	$('.modal').on('hidden.bs.modal',function(){
 		$('.modal').modal('hide');
+		if($('.navbar-collapse').hasClass('in')){
+			$('.navbar-toggle').click();
+		};
 	})
 	
 	var viewportwidth = parseInt($('#id_scaffold_parent_viewport').css('width'));
@@ -184,6 +187,7 @@ $(document).ready(function(){
 	$('#modal_edit_tutor')
 	.on('shown.bs.modal',function(){
 		$('#modal_edit_tutor .btn-success').off('tap').on('tap',function(){
+			$('#modal_edit_tutor .btn-success').prop('disabled',true);
 			var json = {
 				'hashed_id':$('#id_tutormodal_hashed_id').val(),
 				'name':$('#id_tutormodal_name').val(),
@@ -214,6 +218,7 @@ $(document).ready(function(){
 						}
 					}
 					socket.emit('update_existing_tutor',json,function(o){
+						$('#modal_edit_tutor .btn-success').prop('disabled',false);
 						switch(o){
 							case 'wrong_old_pswd':
 								$('#id_tutormodal_oldpswd')
@@ -234,16 +239,6 @@ $(document).ready(function(){
 							break;
 							case 'update_completed':
 								
-								/*
-								
-								//no need to update the modal_tutor row in mobile platform, as they the modal is dismissed immediately any way
-								$('#modal_tutor_row #'+json.hashed_id+' div:nth-child(1)').html(json.name);
-								$('#modal_tutor_row #'+json.hashed_id+' div:nth-child(2)').html(json.mobileno);
-								$('#modal_tutor_row #'+json.hashed_id+' div:nth-child(3)').html(json.email);
-								
-								$('#modal_edit_tutor').modal('hide');
-								*/
-								
 								$('#modal_warning .modal-title').html('Notice');
 								$('#modal_warning .modal-body').html('Existing tutor updated.');
 								$('#modal_warning').modal('show');
@@ -259,6 +254,8 @@ $(document).ready(function(){
 					json['now']=$.sha256(Date.now());
 					json['newpswd']=$.sha256($('#id_tutormodal_newpswd').val());
 					socket.emit('add_new_tutor',json,function(o){
+						
+						$('#modal_edit_tutor .btn-success').prop('disabled',false);
 						if(o=='add_new_tutor_complete'){
 							
 							$('#modal_warning .modal-title').html('Notice');
@@ -275,20 +272,16 @@ $(document).ready(function(){
 		
 		$('#id_tutormodal_name').select();
 		
-		/*
-		//no key press in mobile platform
-		
-		$('#modal_edit_tutor').keypress(function(i){
-			if(i.which==13){
-				$('#modal_edit_tutor .btn-success').click();
-			}
-		})
-		*/
 	})
 	.on('hidden.bs.modal',function(){
 		$('#modal_edit_tutor .btn-success').off('tap');
 		//$('#modal_edit_tutor').off('keypress');
 	});
+	
+	window.addEventListener('popstate',function(e){
+		reset_block();
+		$('.modal').modal('hide');
+	})
 });
 
 
@@ -303,6 +296,8 @@ function tutor_lvl2_binding(){
 	
 	/* bind add new tutor button at add class block */
 	$('#popup_addtutor').on('tap',function(){
+		
+		history.pushState(null,null,'/');
 		$('#id_tutormodal_oldpswd').prop('disabled',true);
 		$('#pswd_block').removeClass('collapse');
 		$('#pswd_block').css('height','153px');
@@ -314,6 +309,7 @@ function tutor_lvl2_binding(){
 	
 	/* bind tutors profile button */
 	$('#nav_profiles').off('tap').tap(function(){
+		history.pushState(null,null,'/');
 		$('#modal_tutor').modal('show');
 		$('#modal_tutor_row').empty();
 		socket.emit('load_profiles','me',function(json){
@@ -326,6 +322,8 @@ function tutor_lvl2_binding(){
 		
 		/* when add a new tutor is been added, also bind click event listeners */
 		$('#modal_tutor_row .btn-primary').off('tap').on('tap',function(){
+			
+			history.pushState(null,null,'/');
 			
 			/* clicking add a new tutor */
 			$('#id_tutormodal_oldpswd').prop('disabled',true);
@@ -355,6 +353,8 @@ function tutor_lvl1_binding(){
 	
 	/* bind clicking tutor profile button */
 	$('#nav_profiles').on('tap',function(){
+		
+		history.pushState(null,null,'/');
 		socket.emit('edit_tutor',$('#id_tutormodal_hashed_id').val(),function(json){
 			
 			$('#id_tutormodal_oldpswd').prop('disabled',false);
@@ -550,13 +550,7 @@ function tutor_lvl1_binding(){
 	
 	socket.on('server_to_client_rearrange_blocks',function(){
 		rearrange_blocks();
-				
-		$('#id_screen,#id_pleaseloginfirst').animate({'opacity':'0.0'},400,function(){
-			$('#id_edit_block_popup').css('display','block');
-			$('#id_screen').css('display','block');
-			$('#id_screen_container').css('display','none');
-			$('#id_pleaseloginfirst').css('display','none');
-		});		
+		dismiss_loading();	
 	});
 	
 	socket.on('server_to_all_update_block',function(i){
@@ -762,6 +756,8 @@ function tutor_lvl1_binding(){
 				jsonO['newchannel']='tt_'+$(this).children('div:first-child').html();
 				socket.emit('tt_load_tt',jsonO);
 				$('#nav_tt').modal('hide');
+				
+				loading();
 			});
 			$('.delete_tt_button').off('click').click(function(){
 				if(confirm('Are you sure you want to delete this timetable?\n\nThis action cannot be undone.')){
@@ -808,6 +804,7 @@ function tutor_lvl1_binding(){
 	});
 	
 	$('#save_button').click(function(){
+		$(this).prop('disabled',true);
 		save_block();
 	});
 	
@@ -817,6 +814,20 @@ function tutor_lvl0_binding(){
 	
 	tutor_lvl1_binding();
 	$('#id_navbar_ttcontrol li').css('display','none');
+}
+
+function loading(){	
+	$('#id_pleaseloginfirst img').attr('src','/includes/loading.png');
+	$('#id_screen_container,#id_screen,#id_pleaseloginfirst').off().css({
+		'opacity'	:'0.0',
+		'display'	:'block'}).animate({'opacity':'0.7'},400,function(){
+	});	
+}
+
+function dismiss_loading(){
+	$('#id_screen,#id_pleaseloginfirst').off().animate({'opacity':'0.0'},400,function(){
+		$('#id_screen_container,#id_screen,#id_pleaseloginfirst').css('display','none');
+	});	
 }
 
 function check_same_pswd(){
@@ -854,6 +865,8 @@ function append_tutor_entry(json){
 	});
 	
 	$('.modal_tutor_unit:last-child').click(function(){
+		
+		history.pushState(null,null,'/');
 		socket.emit('edit_tutor',$(this).attr('id'),function(json){
 			
 			/* clicking on the existing tutor slot */
@@ -1278,14 +1291,19 @@ function save_block(){
 	if($('.activeblock').hasClass('newblock')){
 		$('.activeblock').attr('id',$.sha256(Date.now()));
 		$.extend(item, {'hashed_id':$('.activeblock').attr('id')});
-		socket.emit('save_new_block',item);
+		socket.emit('save_new_block',item,function(o){
+			dismiss_editblock();
+			$('.activeblock').removeClass('activeblock');
+			$('#id_edit_block_popup .btn-success').prop('disabled',false);
+		});
 	}else{
 		$.extend(item, {'hashed_id':$('.activeblock').attr('id')});
-		socket.emit('save_existing_block',item);
+		socket.emit('save_existing_block',item,function(o){
+			dismiss_editblock();
+			$('.activeblock').removeClass('activeblock');
+			$('#id_edit_block_popup .btn-success').prop('disabled',false);
+		});
 	}
-	$('.activeblock').off().removeClass().addClass('inprogress').on('mousedown',function(){return false;});
-	
-	dismiss_editblock();
 }
 
 function delete_block(){
@@ -1356,15 +1374,21 @@ function populate_edit_block(){
 
 function call_editblock(){
 	
-	/* shows edit block dialogue */
-	$('#id_screen_container').css('display','block');
+	history.pushState(null,null,'/');
 	
-	$('#id_screen,#id_edit_block_popup').css('opacity','0.0');
+	/* shows edit block dialogue */
+	$('#id_screen_container,#id_screen').css({'display':'block','opacity':'1.0'});
+	$('#id_pleaseloginfirst').css('display','none');
+	
+	/* jq and jqm does not support getboudingclientrect() */
+	var popuptop = - document.getElementById('id_scaffold_overlay_carousel').getBoundingClientRect().top;
+	
+	$('#id_screen,#id_edit_block_popup').css({'display':'block','opacity':'0.0'});
 	$('#id_screen').animate({'opacity':'0.7'},200);
 	$('#id_edit_block_popup').animate({'opacity':'1.0'},400);
 	
 	/* position of the editblock will always be top,0 for mobile users */
-	$('#id_edit_block_popup').css('top',0);
+	$('#id_edit_block_popup').css('top',popuptop);
 		
 	/* parsing position to time */
 	var starttime = cvt_height_duration(parseInt($('.activeblock').css('top')))+7.5;
