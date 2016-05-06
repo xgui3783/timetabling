@@ -25,31 +25,10 @@ $(document).ready(function(){
 	
 	$(window).resize(function(){
 		
-		if(window.innerWidth>=768){
-			/* large device */
-			$('#id_scaffold_overlay_carousel').css('width','100%');
-			$('#id_scaffold_parent_carousel').css('width','100%');
-			
-		}else{
-			/* small device */
-			var viewportwidth = parseInt($('#id_scaffold_parent_viewport').css('width'));
-			$('#id_scaffold_overlay_carousel').css('width',viewportwidth*7);
-			$('#id_scaffold_parent_carousel').css('width',viewportwidth*7);
-			$('#id_scaffold_overlay_carousel').children('div').css('width','14.28571428571429%');
-			$('#id_scaffold_parent_carousel').children('div').css('width','14.28571428571429%');
-			$(document).on('swipeleft',function(){
-				var step = parseInt($('#id_scaffold_overlay_viewport').css('width'));
-				var original = parseInt($('#id_scaffold_overlay_carousel').css('left'));
-				$('#id_scaffold_overlay_carousel').css('left',original+step);
-				$('#id_scaffold_parent_carousel').css('left',original+step);
-			});
-			$(document).on('swiperight',function(){
-				var step = parseInt($('#id_scaffold_overlay_viewport').css('width'));
-				var original = parseInt($('#id_scaffold_overlay_carousel').css('left'));
-				$('#id_scaffold_overlay_carousel').css('left',original-step);
-				$('#id_scaffold_parent_carousel').css('left',original-step);	
-			});
-		}
+		/* large device */
+		$('#id_scaffold_overlay_carousel').css('width','100%');
+		$('#id_scaffold_parent_carousel').css('width','100%');
+
 		rearrange_blocks();
 	});
 	
@@ -109,17 +88,25 @@ $(document).ready(function(){
 						'usr'	:$('#modal_login #id_login_email').val(),
 						'pswd'	:$.sha256($('#modal_login #id_login_pswd').val())
 						}
+						
+					/* prevent user from clicking login multiple times */
+					$('#modal_login .btn-success').prop('disabled',true);
+					$('#modal_login .btn-success').html('Logging in ...');
+					
 					socket.emit('login',json,function(o){
 						if(o.message=='login ok'){
 							/* login ok */
+							
+							/* change the login button bacck to login */
+							$('#modal_login .btn-success').html('Login');
+							
+							/* change the img of login to loading and remove the click listener */
+							$('#id_pleaseloginfirst img').attr('src','includes/loading.png');
+							$('#id_pleaseloginfirst').off('tap');
+							
+							/* hide the login modal to show loading screen */
 							$('#modal_login')
-							.off(loginhandler)
 							.modal('hide');
-							
-							$('#id_edit_block_popup').css('display','block');
-							$('#id_screen').css('display','block');
-							$('#id_screen_container').css('display','none');
-							
 							
 							$('#nav_login')
 							.off('click')
@@ -145,6 +132,9 @@ $(document).ready(function(){
 								break;
 							}
 						}else if (o.message =='wrong pswd'){
+							$('#modal_login .btn-success').prop('disabled',false);
+							$('#modal_login .btn-success').html('Login');
+							
 							$('#modal_warning .modal-title').html('Warning');
 							$('#modal_warning .modal-body').html('Incorrect user email or password!');
 							$('#modal_warning').modal('show');
@@ -523,6 +513,13 @@ function tutor_lvl1_binding(){
 	
 	socket.on('server_to_client_rearrange_blocks',function(){
 		rearrange_blocks();
+				
+		$('#id_screen,#id_pleaseloginfirst').animate({'opacity':'0.0'},400,function(){
+			$('#id_edit_block_popup').css('display','block');
+			$('#id_screen').css('display','block');
+			$('#id_screen_container').css('display','none');
+			$('#id_pleaseloginfirst').css('display','none');
+		});		
 	})
 	
 	socket.on('server_to_all_update_block',function(i){
@@ -1686,7 +1683,7 @@ function cvt_day_time_to_pos_height(day, starttime, endtime){
 
 //converting height to time
 function cvt_height_duration(i){
-	return Math.round(parseInt(i)/32)/2;
+	return Math.round(parseInt(i)/parseInt($('#id_table_scaffold tbody tr:nth-child(2)').css('height')))/2;
 }
 
 //converting decimal to time

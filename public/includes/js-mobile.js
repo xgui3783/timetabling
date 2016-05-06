@@ -104,11 +104,6 @@ $(document).ready(function(){
 	.on('shown.bs.modal',function(){
 		
 		$('#modal_login #id_login_email').focus();
-		$('#modal_login').off('keypress').on('keypress',function(i){
-			if(i.which==13){
-				$('#modal_login .btn-success').click();
-			}
-		});
 		$('#modal_login .btn-success').off().click(function(){
 			/* clicking the success button */
 			if($('#id_login_email').val().replace(/ /g,'')==''){
@@ -125,17 +120,25 @@ $(document).ready(function(){
 						'usr'	:$('#modal_login #id_login_email').val(),
 						'pswd'	:$.sha256($('#modal_login #id_login_pswd').val())
 						}
+						
+					/* prevent user from clicking login multiple times */
+					$('#modal_login .btn-success').prop('disabled',true);
+					$('#modal_login .btn-success').html('Logging in ...');
+					
 					socket.emit('login',json,function(o){
 						if(o.message=='login ok'){
 							/* login ok */
+							
+							/* change the login button bacck to login */
+							$('#modal_login .btn-success').html('Login');
+							
+							/* change the img of login to loading and remove the click listener */
+							$('#id_pleaseloginfirst img').attr('src','includes/loading.png');
+							$('#id_pleaseloginfirst').off('tap');
+							
+							/* hide the login modal to show loading screen */
 							$('#modal_login')
-							.off(loginhandler)
 							.modal('hide');
-							
-							$('#id_edit_block_popup').css('display','block');
-							$('#id_screen').css('display','block');
-							$('#id_screen_container').css('display','none');
-							
 							
 							$('#nav_login')
 							.off('click')
@@ -161,6 +164,9 @@ $(document).ready(function(){
 								break;
 							}
 						}else if (o.message =='wrong pswd'){
+							$('#modal_login .btn-success').prop('disabled',false);
+							$('#modal_login .btn-success').html('Login');
+							
 							$('#modal_warning .modal-title').html('Warning');
 							$('#modal_warning .modal-body').html('Incorrect user email or password!');
 							$('#modal_warning').modal('show');
@@ -254,13 +260,7 @@ $(document).ready(function(){
 					json['newpswd']=$.sha256($('#id_tutormodal_newpswd').val());
 					socket.emit('add_new_tutor',json,function(o){
 						if(o=='add_new_tutor_complete'){
-							/*
-								//no need to update the modal_tutor row in mobile platform, as they the modal is dismissed immediately any way
-							$('#modal_edit_tutor').modal('hide');
-							json['hashed_id']=json['now'];
-							append_tutor_entry(json);
-							$('#modal_tutor #id_addnewtutor').insertAfter($('#modal_tutor .modal_tutor_unit').last());
-							*/
+							
 							$('#modal_warning .modal-title').html('Notice');
 							$('#modal_warning .modal-body').html('New tutor Added.');
 							$('#modal_warning').modal('show');
@@ -550,7 +550,14 @@ function tutor_lvl1_binding(){
 	
 	socket.on('server_to_client_rearrange_blocks',function(){
 		rearrange_blocks();
-	})
+				
+		$('#id_screen,#id_pleaseloginfirst').animate({'opacity':'0.0'},400,function(){
+			$('#id_edit_block_popup').css('display','block');
+			$('#id_screen').css('display','block');
+			$('#id_screen_container').css('display','none');
+			$('#id_pleaseloginfirst').css('display','none');
+		});		
+	});
 	
 	socket.on('server_to_all_update_block',function(i){
 		
@@ -1316,9 +1323,9 @@ function bind_fn_creating_blocks(){
 	$('#id_scaffold_overlay_carousel').children('div').off('tap').on('tap',function(d){
 		
 		$('.activeblock').removeClass('activeblock');
-		$(this).append('<div class = "lessonblock activeblock"></div>');
+		$(this).append('<div class = "lessonblock activeblock newblock"></div>');
 		$('div.activeblock').css({
-			'top':round_off_offsetY(d.offsetY),
+			'top':round_off_offsetY(d.clientY-this.getBoundingClientRect().top),
 			'left':0,
 			'height':'32px',
 			'width':'100%'
@@ -1355,28 +1362,14 @@ function call_editblock(){
 	$('#id_screen,#id_edit_block_popup').css('opacity','0.0');
 	$('#id_screen').animate({'opacity':'0.7'},200);
 	$('#id_edit_block_popup').animate({'opacity':'1.0'},400);
-
 	
-	/* position the dialogue */
-	if($('.activeblock').parent().index()<5){
-		$('#id_edit_block_popup').removeClass().addClass('container col-xs-offset-1 col-sm-offset-1 col-xs-11 col-sm-11 col-md-5 col-md-offset-'+($('.activeblock').parent().index()+2));
-	}else if ($('.activeblock').parent().index()<7){
-		$('#id_edit_block_popup').removeClass().addClass('container col-xs-offset-1 col-sm-offset-1 col-xs-11 col-sm-11 col-md-5 col-md-offset-'+(($('.activeblock').parent().index()-5)*3+1));		
-	}
-	$('#id_edit_block_popup').css('top',parseInt($('.activeblock').css('top'))-20);
-	var editblock_bottom = parseInt($('#id_edit_block_popup').css('top'))+parseInt($('#id_edit_block_popup').css('height'));
-	var table_saffold_bottom = parseInt($('#id_table_scaffold').position().top)+parseInt($('#id_table_scaffold').css('height'));
-	
-	if(editblock_bottom>table_saffold_bottom){
-		$('#id_edit_block_popup').css('top',parseInt($('#id_edit_block_popup').css('top'))-editblock_bottom+table_saffold_bottom);
-	}
-	if(parseInt($('#id_edit_block_popup').css('top'))<0){
-		$('#id_edit_block_popup').css('top',0);
-	}
-	
+	/* position of the editblock will always be top,0 for mobile users */
+	$('#id_edit_block_popup').css('top',0);
+		
 	/* parsing position to time */
 	var starttime = cvt_height_duration(parseInt($('.activeblock').css('top')))+7.5;
 	var endtime = starttime + cvt_height_duration(parseInt($('.activeblock').css('height')));
+	
 	
 	/* updating the parsed time to the relevant fields inside the edit block dialogue */
 	$('#id_starttime').val(cvt_dec_to_time(starttime));
@@ -1407,24 +1400,6 @@ function dismiss_editblock(){
 	$('#id_edit_block_popup').off('keypress');
 	
 	bind_fn_lessonblocks();
-}
-
-function relative_offsetY(e,r){
-	return parseInt(e.pageY)-parseInt($(r).offset().top);
-}
-
-function relative_offsetX(e,r){
-	return parseInt(e.pageX)-parseInt($(r).offset().left);
-}
-
-function round_off_offsetX(i){
-	var o;
-		$('.scaffold_overlay_unit').each(function(){
-			if($(this).position().left-i<0&&$(this).position().left+parseInt($(this).css('width'))-i>0){
-				o = $(this);
-			}
-		});
-	return o;
 }
 
 //input an analogue position, output a nearest digital position if error, returns 0
@@ -1584,7 +1559,7 @@ function cvt_day_time_to_pos_height(day, starttime, endtime){
 
 //converting height to time
 function cvt_height_duration(i){
-	return Math.round(parseInt(i)/32)/2;
+	return Math.round(parseInt(i)/parseInt($('#id_table_scaffold tbody tr:nth-child(2)').css('height')))/2;
 }
 
 //converting decimal to time
