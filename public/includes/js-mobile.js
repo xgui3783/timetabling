@@ -455,39 +455,65 @@ function tutor_lvl1_binding(){
 	/* populate the filter modal with relevant information */
 	$('#modal_filter .panel .panel-footer button').click(function(){
 		if($(this).parent().parent().hasClass('panel-primary')){
-			if($(this).html()=='Select None'){
-				$(this).parent().parent().children('.panel-body').children('button').removeClass('noselect');
-				$(this).parent().parent().children('.panel-body').children('button').click();
-			}else if($(this).html()=='Select All'){
-				$(this).parent().parent().children('.panel-body').children('button').addClass('noselect');	
-				$(this).parent().parent().children('.panel-body').children('button').click();
-			}
+			$.mobile.loading('show',{
+				textonly:true,
+				textVisible:true,
+				text:'Loading ...',
+				theme:'b'
+			});
+			var _this = $(this);
+			setTimeout(function(){
+				if(_this.html()=='Select None'){
+					_this.parent().parent().children('.panel-body').children('button').removeClass('noselect');
+					_this.parent().parent().children('.panel-body').children('button').click();
+				}else if(_this.html()=='Select All'){
+					_this.parent().parent().children('.panel-body').children('button').addClass('noselect');	
+					_this.parent().parent().children('.panel-body').children('button').click();
+				}
+				$.mobile.loading('hide');
+			},100);
+			
 			update_lesson_blocks_tt();
 		}
 	});
 			
 	$('#modal_filter .panel').click(function(){
 		if(!$(this).hasClass('panel-primary')){
-			$(this).parent().children('div.panel-primary').removeClass('panel-primary').addClass('panel-default');
-			$(this).addClass('panel-primary');
-			update_lesson_block_color();
 			
-			/* because populate_modal_filter unbinds click listeners, also resets the colours of nonactive panels */
-			populate_modal_filter();
-			$('.noshow').removeClass('noshow');
-			rearrange_blocks();
-			
-			$(this).children('div.panel-body').children('button').off('click').click(function(){
-				if($(this).parent().parent().hasClass('panel-primary')){
-					/* button press, toggle noselect class */
-					modal_filter_button_click($(this));
-					update_lesson_blocks_tt();
-				}
+			$.mobile.loading('show',{
+				textonly:true,
+				textVisible:true,
+				text:'Loading ...',
+				theme:'b'
 			});
+			var _this = $(this);
+			setTimeout(function(){
+				_this.parent().children('div.panel-primary').removeClass('panel-primary').addClass('panel-default');
+				_this.addClass('panel-primary');
+				update_lesson_block_color();
+				
+				/* because populate_modal_filter unbinds click listeners, also resets the colours of nonactive panels */
+				populate_modal_filter();
+				$('.noshow').removeClass('noshow');
+				rearrange_blocks();
+				
+				_this.children('div.panel-body').children('button').off('click').click(function(){
+					if($(this).parent().parent().hasClass('panel-primary')){
+						/* button press, toggle noselect class */
+						modal_filter_button_click($(this));
+						update_lesson_blocks_tt();
+					}
+				});
+				$.mobile.loading('hide');
+			},100)
+			
+			
 		}
 	});
 	
 	$('#nav_filter').click(function(){
+		
+		history.pushState(null,null,'/');
 		$('#modal_filter').modal('show');
 	});
 	
@@ -669,6 +695,7 @@ function tutor_lvl1_binding(){
 	
 	/* creating new timetable */
 	$('#nav_new').click(function(){
+		history.pushState(null,null,'/');
 		$('#nav_tt').modal('show')	
 		.on('shown.bs.modal',function(){
 			$('#id_input_modal_tt').val('');
@@ -693,6 +720,7 @@ function tutor_lvl1_binding(){
 	
 	/* save a copy */
 	$('#nav_saveacopy').click(function(){
+		history.pushState(null,null,'/');
 		$('#nav_tt').modal('show')
 		.on('shown.bs.modal',function(){
 			$('#id_input_modal_tt').val($('#nav_name').html() + '_copy');
@@ -714,6 +742,7 @@ function tutor_lvl1_binding(){
 	
 	/* rename the timetable */
 	$('#nav_rename').click(function(){
+		history.pushState(null,null,'/');
 		$('#nav_tt').modal('show')
 		.on('shown.bs.modal',function(){
 			$('#id_input_modal_tt').val($('#nav_name').html());
@@ -737,6 +766,7 @@ function tutor_lvl1_binding(){
 	
 	/* load and edit a new timetable */
 	$('#nav_load').click(function(){
+		history.pushState(null,null,'/');
 		$('#nav_tt').modal('show');
 		$('#nav_tt h4').html('Load Timetable');
 		$('#nav_tt div.modal-footer')
@@ -822,6 +852,7 @@ function loading(){
 		'opacity'	:'0.0',
 		'display'	:'block'}).animate({'opacity':'0.7'},400,function(){
 	});	
+	populate_modal_filter();
 }
 
 function dismiss_loading(){
@@ -1339,7 +1370,6 @@ function bind_fn_creating_blocks(){
 	
 	//binding overlay element with on mouse down event
 	$('#id_scaffold_overlay_carousel').children('div').off('tap').on('tap',function(d){
-		
 		$('.activeblock').removeClass('activeblock');
 		$(this).append('<div class = "lessonblock activeblock newblock"></div>');
 		$('div.activeblock').css({
@@ -1348,6 +1378,7 @@ function bind_fn_creating_blocks(){
 			'height':'32px',
 			'width':'100%'
 		});
+		
 		call_editblock();
 		populate_edit_block();
 		
@@ -1377,15 +1408,29 @@ function call_editblock(){
 	history.pushState(null,null,'/');
 	
 	/* shows edit block dialogue */
-	$('#id_screen_container,#id_screen').css({'display':'block','opacity':'1.0'});
+	
+	$('#id_edit_block_popup input,button,select').prop('disabled',true);
+	
+	$('#id_edit_block_popup').css({'display':'block','opacity':'0.0'});
+	$('#id_screen_container').css({
+		'display':'block',
+		'opacity':'1.0'});
+		
+	$('#id_edit_block_popup').animate({'opacity':'1.0'},400,function(){
+		$('#id_edit_block_popup input,button,select').prop('disabled',false);
+		$('#id_screen').off('click').click(function(){
+			reset_block();
+		});
+	});
+	$('#id_screen').css({
+		'display':'block',
+		'opacity':'0.0'})
+	.animate({'opacity':'0.7'},400,function(){
+	});
+	
 	$('#id_pleaseloginfirst').css('display','none');
 	
-	/* jq and jqm does not support getboudingclientrect() */
 	var popuptop = - document.getElementById('id_scaffold_overlay_carousel').getBoundingClientRect().top;
-	
-	$('#id_screen,#id_edit_block_popup').css({'display':'block','opacity':'0.0'});
-	$('#id_screen').animate({'opacity':'0.7'},200);
-	$('#id_edit_block_popup').animate({'opacity':'1.0'},400);
 	
 	/* position of the editblock will always be top,0 for mobile users */
 	$('#id_edit_block_popup').css('top',popuptop);
@@ -1408,9 +1453,10 @@ function call_editblock(){
 
 function dismiss_editblock(){
 	
-	$('#id_screen').animate({'opacity':'0.0'},200);
-	$('#id_edit_block_popup').animate({'opacity':'0.0'},400,function(){
+	$('#id_screen_container').animate({'opacity':'0.0'},400,function(){
 		$('#id_screen_container').css('display','none');
+		
+		$('#id_edit_block_popup input').val('');
 		
 		/* if the user entered the time in the wrong format, dissmiss edit block will remove both the red border and the tooltip */
 		$('#id_starttime').parent().parent().removeClass('has-error');

@@ -270,7 +270,7 @@ function tutor_lvl2_binding(){
 	tutor_lvl1_binding();
 	
 	/* bind add new tutor button at add class block */
-	$('#popup_addtutor').click(function(){
+	$('#popup_addtutor').off('click').click(function(){
 		$('#id_tutormodal_oldpswd').prop('disabled',true);
 		$('#pswd_block').removeClass('collapse');
 		$('#pswd_block').css('height','153px');
@@ -462,6 +462,8 @@ function tutor_lvl1_binding(){
 	$('#modal_filter')
 	.on('show.bs.modal',function(){
 		if($('#modal_filter .panel-primary .panel-body button').length==0){
+			
+			/* when modal filter is expanding, if it has not been populated, populate it */
 			populate_modal_filter();
 			update_lesson_block_color();
 			$('#modal_filter .panel-primary .panel-body button').click(function(){
@@ -758,9 +760,6 @@ function tutor_lvl1_binding(){
 		}
 	});
 	
-	$('#id_screen,#cancel_button').click(function(){
-		reset_block();
-	});
 	
 	$('#delete_button').click(function(){
 		delete_block();
@@ -787,6 +786,7 @@ function loading(){
 		'opacity'	:'0.0',
 		'display'	:'block'}).animate({'opacity':'0.7'},400,function(){
 	});	
+	populate_modal_filter();
 }
 
 function dismiss_loading(){
@@ -1453,6 +1453,11 @@ function populate_edit_block(){
 }
 
 function call_editblock(){
+	
+	
+	$('#id_screen,#cancel_button').off('click').click(function(){
+		reset_block();
+	});
 	
 	/* shows edit block dialogue */
 	$('#id_screen_container').css('display','block');
