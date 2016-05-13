@@ -1,5 +1,8 @@
 /*  */
-
+body
+{
+overflow-x:hidden;
+}
 
 /* hidden for low level tutors/students */
 
@@ -197,6 +200,7 @@ height:936px;
 position:absolute;
 }
 
+	
 #id_scaffold_overlay_wrapper
 {
 height:100%;
@@ -212,6 +216,11 @@ position:relative;
 		display:inline-block;
 		margin:0;
 		padding:0;	
+		}
+		
+		#id_scaffold_parent_carousel div.scaffold_parent
+		{
+			width:14.28571428571429%;
 		}
 
 		#id_table_scaffold_wrapper div.scaffold_parent:not(:first-child) table
@@ -262,6 +271,11 @@ border-top:2px solid #eee;
 #id_table_scaffold_overlay div
 {
 	height:100%;
+}
+
+#id_scaffold_overlay_carousel div.scaffold_overlay_unit
+{
+	width:14.28571428571429%;
 }
 
 /* styling of the block */

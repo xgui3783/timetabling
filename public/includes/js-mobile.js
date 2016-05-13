@@ -281,7 +281,15 @@ $(document).ready(function(){
 	window.addEventListener('popstate',function(e){
 		reset_block();
 		$('.modal').modal('hide');
-	})
+	});
+	
+	
+	socket.on('server_to_client_update_failed',function(err){
+		//failure state here
+		$('#modal_warning .modal-title').html('Warning');
+		$('#modal_warning .modal-body').html(err);
+		$('#modal_warning').modal('show');
+	});
 });
 
 
@@ -598,12 +606,6 @@ function tutor_lvl1_binding(){
 		}
 	});
 	
-	socket.on('server_to_client_update_failed',function(err){
-		//failure state here
-		$('#modal_warning .modal-title').html('Warning');
-		$('#modal_warning .modal-body').html(err);
-		$('#modal_warning').modal('show');
-	});
 	
 	socket.on('server_to_all_remove_block',function(i){
 		$('#'+i).remove();
@@ -1456,7 +1458,7 @@ function dismiss_editblock(){
 	$('#id_screen_container').animate({'opacity':'0.0'},400,function(){
 		$('#id_screen_container').css('display','none');
 		
-		$('#id_edit_block_popup input').val('');
+		$('#id_edit_block_popup input,textarea').val('');
 		
 		/* if the user entered the time in the wrong format, dissmiss edit block will remove both the red border and the tooltip */
 		$('#id_starttime').parent().parent().removeClass('has-error');
