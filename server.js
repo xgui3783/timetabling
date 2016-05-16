@@ -17,22 +17,93 @@ var connection = mysql.createConnection({
 	password	:'',
 	database	:dbname
 });
-*/
+
 
 /* process.env.OPENSHIFT_MYSQL_DB_HOST, */
 
 
 var dbname = 'timetable';
 var connection = mysql.createConnection({
-	host	:process.env.OPENSHIFT_MYSQL_DB_HOST,
-	port	:process.env.OPENSHIFT_MYSQL_DB_PORT,
-	user	:process.env.OPENSHIFT_MYSQL_DB_USERNAME,/* 'adminH6W5AY1', */
-	password	:process.env.OPENSHIFT_MYSQL_DB_PASSWORD, /*'bW_WvzBpa6qx', */
+	host	:'127.7.51.130', 
+	user	:'adminsrCNFym',
+	password	:'9gPQRXKgSdbH',
 	database	:dbname
 });
-
+//*/
 
 io.on('connection',function(socket){
+	
+	/* if a user logs in without a table called tutor_db */
+	connection.query('SELECT TABLE_NAME FROM information_schema.tables WHERE TABLE_SCHEMA = "' + dbname + '" AND TABLE_NAME = "tutor_db"',function(e,rows){
+		if(e){
+			socket.emit('server_to_client_update_failed', 'Err29 db failed. Likely due to database is down. Trace:'+e);
+		}else{
+			if(rows.length==0){
+				connection.query(
+				'CREATE TABLE tutor_db ('+
+				'id int(4) NOT NULL AUTO_INCREMENT,'+
+				'hashed_id varchar(64) NOT NULL,'+
+				'admin int(1) NOT NULL,'+
+				
+				'name varchar(64) NOT NULL,'+
+				'mobileno varchar(16) NOT NULL,'+
+				'email varchar(128) NOT NULL,'+
+				
+				'salt varchar(64) NOT NULL,'+
+				'pswd_encrypt varchar(64) NOT NULL,'+
+				'login_token varchar(64) NOT NULL,'+
+				
+				'PRIMARY KEY(id));',
+				function(e1){
+					if(e1){
+						socket.emit('server_to_client_update_failed', 'Err53 db failed. Likely due to database is down. Trace:'+e1);		
+					}else{
+						var hashed_id = sha256(String(Date.now()));
+						var salt = sha256('admin'+hashed_id);
+							connection.query('INSERT INTO tutor_db (admin,name,email,hashed_id,salt) VALUES (?,?,?,?,?);',[2,'admin','admin',hashed_id,salt],function(e3){
+							if(e3){
+								socket.emit('server_to_client_update_failed', 'Err29 db failed. Likely due to database is down. Trace:'+e3);		
+							}else{
+								connection.query('UPDATE tutor_db SET pswd_encrypt = ? WHERE hashed_id = ?',[sha256(sha256('pass')+salt),hashed_id],function(e2){
+									if(e2){
+										socket.emit('server_to_client_update_failed', 'Err35 db failed. Likely due to database is down. Trace:'+e2);		
+									}else{
+										console.log('call client');
+										socket.emit('server_to_client_update_failed','It seems like this is your first time booting up this app. I have taken the liberty to create an admin account with login name "admin" and password "pass" (without quotations). Either change the password or add a new account, and delete this automatically generated account ASAP.');
+									}
+								});
+							}
+						})
+					}
+				})
+			}else{
+				connection.query('SELECT * FROM tutor_db',function(e1,r){
+					if(e1){
+						socket.emit('server_to_client_update_failed', 'Err81 db failed. Likely due to database is down. Trace:'+e1);
+					}else{
+						if(r.length==0){
+							/* tutor_db exist, but no entries, add entry */
+							var hashed_id = sha256(String(Date.now()));
+							var salt = sha256('admin'+hashed_id);
+							connection.query('INSERT INTO tutor_db (admin,name,email,hashed_id,salt) VALUES (?,?,?,?,?);',[2,'admin','admin',hashed_id,salt],function(e3){
+								if(e3){
+									socket.emit('server_to_client_update_failed', 'Err29 db failed. Likely due to database is down. Trace:'+e3);		
+								}else{
+									connection.query('UPDATE tutor_db SET pswd_encrypt = ? WHERE hashed_id = ?',[sha256(sha256('pass')+salt),hashed_id],function(e2){
+										if(e2){
+											socket.emit('server_to_client_update_failed', 'Err35 db failed. Likely due to database is down. Trace:'+e2);		
+										}else{
+											socket.emit('server_to_client_update_failed', 'It seems like this is your first time booting up this app. I have taken the liberty to create an admin account with login name "admin" and password "pass" (without quotations). Either change the password or add a new account, and delete this automatically generated account ASAP.');
+										}
+									});
+								}
+							});
+						}
+					}
+				})
+			}
+		}
+	});
 	
 	console.log("an anonymous user has connected");
 	
@@ -50,11 +121,17 @@ io.on('connection',function(socket){
 				socket.emit('server_to_client_update_failed', 'Err530 db failed. Trace: '+e);
 			}else{
 				if(r.length==0){
+					console.log('user doesnt exist');
 					error_log(i);
 					var o = {'message':'wrong pswd'}
 					callback(o);
 					//write to login error log
 				}else if (r[0].pswd_encrypt!=sha256(i.pswd+r[0].salt)){
+					console.log('wrong pswd');
+					console.log(r[0].pswd_encrypt);
+					console.log(i.pswd);
+					console.log(r[0].salt);
+					console.log(sha256(i.pswd+r[0].salt));
 					error_log(i);
 					var o = {'message':'wrong pswd'}
 					callback(o);
@@ -79,7 +156,7 @@ io.on('connection',function(socket){
 	socket.on('add_new_tutor',function(i,callback){
 		var hashed_id = i.now;
 		var salt = sha256(i.name+i.now);
-		connection.query('INSERT INTO tutor_db (name,mobileno,email,hashed_id,salt) VALUES (?,?,?,?,?);',[i.name,i.mobileno,i.email,hashed_id,salt],function(e){
+		connection.query('INSERT INTO tutor_db (admin,name,mobileno,email,hashed_id,salt) VALUES (?,?,?,?,?,?);',[i.admin,i.name,i.mobileno,i.email,hashed_id,salt],function(e){
 			if(e){
 				socket.emit('server_to_client_update_failed', 'Err29 db failed. Likely due to database is down. Trace:'+e);		
 			}else{
