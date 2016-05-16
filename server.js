@@ -22,7 +22,7 @@ var connection = mysql.createConnection({
 /* process.env.OPENSHIFT_MYSQL_DB_HOST, */
 
 
-var dbname = 'timetabling';
+var dbname = 'timetable';
 var connection = mysql.createConnection({
 	host	:process.env.OPENSHIFT_MYSQL_DB_HOST,
 	port	:process.env.OPENSHIFT_MYSQL_DB_PORT,
