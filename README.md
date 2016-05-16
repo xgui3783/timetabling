@@ -50,6 +50,7 @@ Possibility of letting clients login to see their appointments.
 ## Bug reports
 
 Known issue: filter functionality is very slow on mobile devices. 
+Known issue: logoff fires randomly. Does not seem to be able to reproduce this bug reliably.
 
 ## Contributors
 
