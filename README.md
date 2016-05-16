@@ -18,7 +18,7 @@ Responsive mobile layout and functionality.
 
 First time logging in, the application will create the db_tables needed automatically. 
 
-Working example at: URL
+Working example at: <http://timetable-pandamakes.rhcloud.com>
 
 ## Deployment
 
@@ -41,7 +41,7 @@ And
 
 And
 
-4) Configure var socket = io.connect(foobar,function(){}) accordingly (existing codes works for OpenShift Node.js applications)
+4) Configure var socket = io.connect('http://yourapp.yourdomain.rhcloud.com:8000',function(){}) accordingly (existing codes works for OpenShift Node.js applications)
 
 ## Future update
 

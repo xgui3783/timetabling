@@ -1,5 +1,10 @@
 
-	
+
+var socket = io.connect('http://timetable-pandamakes.rhcloud.com:8000/',function(){
+	//'forceNew':true,
+});
+//*/
+/*
 var socket = io.connect('http://timetable-gened.rhcloud.com:8000/',function(){
 	//'forceNew':true,
 });

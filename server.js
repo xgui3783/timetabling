@@ -9,8 +9,8 @@ var io = require('socket.io').listen(server);
 var mysql = require('mysql');
 var sha256 = require('js-sha256');
 
-/*
-var dbname = 'nodejs';
+
+var dbname = 'timetable';
 var connection = mysql.createConnection({
 	host	:'localhost', 
 	user	:'root',
@@ -20,7 +20,7 @@ var connection = mysql.createConnection({
 
 
 /* process.env.OPENSHIFT_MYSQL_DB_HOST, */
-
+/*
 
 var dbname = 'timetable';
 var connection = mysql.createConnection({
@@ -33,7 +33,6 @@ var connection = mysql.createConnection({
 //*/
 
 io.on('connection',function(socket){
-	
 	/* if a user logs in without a table called tutor_db */
 	connection.query('SELECT TABLE_NAME FROM information_schema.tables WHERE TABLE_SCHEMA = "' + dbname + '" AND TABLE_NAME = "tutor_db"',function(e,rows){
 		if(e){
@@ -69,7 +68,6 @@ io.on('connection',function(socket){
 									if(e2){
 										socket.emit('server_to_client_update_failed', 'Err35 db failed. Likely due to database is down. Trace:'+e2);		
 									}else{
-										console.log('call client');
 										socket.emit('server_to_client_update_failed','It seems like this is your first time booting up this app. I have taken the liberty to create an admin account with login name "admin" and password "pass" (without quotations). Either change the password or add a new account, and delete this automatically generated account ASAP.');
 									}
 								});
