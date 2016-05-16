@@ -24,10 +24,10 @@ var connection = mysql.createConnection({
 
 var dbname = 'timetabling';
 var connection = mysql.createConnection({
-	host	:OPENSHIFT_MYSQL_DB_HOST,
-	port	:OPENSHIFT_MYSQL_DB_PORT,
-	user	:OPENSHIFT_MYSQL_DB_USERNAME,/* 'adminH6W5AY1', */
-	password	:OPENSHIFT_MYSQL_DB_PASSWORD, /*'bW_WvzBpa6qx', */
+	host	:process.env.OPENSHIFT_MYSQL_DB_HOST,
+	port	:process.env.OPENSHIFT_MYSQL_DB_PORT,
+	user	:process.env.OPENSHIFT_MYSQL_DB_USERNAME,/* 'adminH6W5AY1', */
+	password	:process.env.OPENSHIFT_MYSQL_DB_PASSWORD, /*'bW_WvzBpa6qx', */
 	database	:dbname
 });
 
