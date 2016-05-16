@@ -1,78 +1,55 @@
 #!/bin/env node
 
-var http = require('http');
-
 var express = require('express');
 var app = require('express')();
-var server = http.createServer(app);
-var io = require('socket.io').listen(server);
+var server = require('http').createServer(app);
+var io = require('socket.io')(server);
 var mysql = require('mysql');
 var sha256 = require('js-sha256');
 
-/*
 var dbname = 'nodejs';
+
 var connection = mysql.createConnection({
-	host	:'localhost', 
+	host	:'localhost',
 	user	:'root',
 	password	:'',
 	database	:dbname
 });
-*/
-
-/* process.env.OPENSHIFT_MYSQL_DB_HOST, */
-
-
-var dbname = 'timetabling';
-var connection = mysql.createConnection({
-	host	:OPENSHIFT_MYSQL_DB_HOST,
-	port	:OPENSHIFT_MYSQL_DB_PORT,
-	user	:OPENSHIFT_MYSQL_DB_USERNAME,/* 'adminH6W5AY1', */
-	password	:OPENSHIFT_MYSQL_DB_PASSWORD, /*'bW_WvzBpa6qx', */
-	database	:dbname
-});
-
 
 io.on('connection',function(socket){
 	
 	console.log("an anonymous user has connected");
 	
 	socket.on('disconnect',function(){
-		if(socket.name==undefined){
+		if(socket.usr==undefined){
 			console.log('an anonymous user has disconnected.');
 		}else{
-			console.log(socket.name + ' has disconnected.');
+			console.log(socket.usr + ' has disconnected.');
 		}
 	});
 	
 	socket.on('login',function(i,callback){
-		connection.query('SELECT hashed_id,name, salt, pswd_encrypt, admin FROM tutor_db WHERE email = ?',i.usr,function(e,r){
+		connection.query('SELECT name, salt, pswd_encrypt, admin FROM tutor_db WHERE email = ?',i.usr,function(e,r){
 			if(e){
 				socket.emit('server_to_client_update_failed', 'Err530 db failed. Trace: '+e);
 			}else{
 				if(r.length==0){
 					error_log(i);
-					var o = {'message':'wrong pswd'}
-					callback(o);
+					callback('wrong pswd');
 					//write to login error log
 				}else if (r[0].pswd_encrypt!=sha256(i.pswd+r[0].salt)){
 					error_log(i);
-					var o = {'message':'wrong pswd'}
-					callback(o);
+					callback('wrong pswd');
 					//write to login error log
 				}else{
-					console.log(r[0].name + ',with admin power of ' + r[0].admin + ' has logged in.');
-					var o = {
-						'message'	:'login ok',
-						'name'		:r[0].name,
-						'admin'		:r[0].admin,
-						'hashed_id'	:r[0].hashed_id}
-					socket.name = r[0].name;
+					console.log(r[0].name + ' has logged in.');
+					callback('login ok');
+					socket.usr = r[0].name;
 					socket.admin = r[0].admin;
-					socket.hashed_id = r[0].hashed_id;
-					callback(o);
 				}
 			}
 		})
+		
 	});
 	
 	
@@ -100,17 +77,14 @@ io.on('connection',function(socket){
 			'name':i.name,
 			'email':i.email,
 			'mobileno':i.mobileno};
-		if(socket.admin==2){
-			update_json['admin']=i.admin;
-		}
-		if((i.oldpswd!=undefined&&(socket.admin==0||socket.admin==1))||(socket.admin==2)&&i.newpswd!=undefined){
+		if(i.oldpswd!=undefined){
 			/* updating pswd as well as basic info */
 			connection.query('SELECT salt, pswd_encrypt FROM tutor_db WHERE hashed_id = ?',i.hashed_id,function(e,r){
 				if(e){
 					socket.emit('server_to_client_update_failed', 'Err50 db failed. Likely due to database is down. Trace:'+e);
 				}else{
-					if((sha256(i.oldpswd+r[0].salt)==r[0].pswd_encrypt)||socket.admin==2){
-						//right old pswd or person has admin rights of 2
+					if(sha256(i.oldpswd+r[0].salt)==r[0].pswd_encrypt){
+						//right old pswd
 						update_json['pswd_encrypt']=sha256(i.newpswd+r[0].salt);
 						connection.query('SELECT * FROM tutor_db WHERE email = ? AND NOT hashed_id = ?',[i.email,i.hashed_id],function(e2,r2){
 							if(e2){
@@ -200,7 +174,7 @@ io.on('connection',function(socket){
 		})
 	});
 	
-	socket.on('on_document_load',function(callback){
+	socket.on('on_document_load',function(i,callback){
 		/* on document load */
 		
 		connection.query('SELECT TABLE_NAME FROM information_schema.tables WHERE TABLE_SCHEMA = "' + dbname + '" AND TABLE_NAME = "tutor_db"',function(e,rows){
@@ -228,11 +202,7 @@ io.on('connection',function(socket){
 							socket.emit('server_to_client_update_failed', 'Err172 db failed. Likely due to database is down. Trace:'+e);		
 						}
 					});
-				}else{
-					var o = {
-						'admin'	:socket.admin,
-						'name'	:socket.name};
-					callback(o);	
+				}else{		
 					connection.query('SELECT name FROM tutor_db',function(e,r){
 						if(e){
 							socket.emit('server_to_client_update_failed', 'Err151 db failed. Likely due to database is down. Trace:'+e);
@@ -294,7 +264,7 @@ io.on('connection',function(socket){
 							socket.emit('server_to_client_update_failed', 'Err44. Select failed. Likely due to database is down. Trace:'+e);
 							//throw err;
 						}else{
-							io.to(tt_name).emit('server_to_all_update_block',j[0]);
+						io.to(tt_name).emit('server_to_all_update_block',j[0]);
 						}
 					})
 				}
@@ -303,7 +273,7 @@ io.on('connection',function(socket){
 			socket.emit('server_to_client_update_failed', 'Err058, client not listening correctly. Usually a refresh will help solve the problem');
 		}
 	});
-	socket.on('save_existing_block',function(i,callback){
+	socket.on('save_existing_block',function(i){
 		if(check_listener(socket,i.timetablename)){
 			var tt_name=i.timetablename;
 			delete i.timetablename;
@@ -313,11 +283,9 @@ io.on('connection',function(socket){
 					return;
 				}
 				io.to(tt_name).emit('server_to_all_update_block',i);
-				callback('success');
 			})
 		}else{
 			socket.emit('server_to_client_update_failed', 'Err073, client not listening correctly. Usually a refresh will help solve the problem');
-			callback('failed');
 		}
 	});
 	socket.on('delete_existing_block',function(i){
@@ -330,12 +298,7 @@ io.on('connection',function(socket){
 		}
 	});
 	socket.on('edit_tutor',function(i,callback){
-		if(socket.admin==2){
-			var q = 'SELECT admin,hashed_id, name, mobileno, email FROM tutor_db WHERE hashed_id = ?';
-		}else if (socket.admin==1||socket.admin==0){
-			var q = 'SELECT hashed_id, name, mobileno, email FROM tutor_db WHERE hashed_id = ?';
-		}
-		connection.query(q,i,function(e,r){
+		connection.query('SELECT hashed_id, name, mobileno, email FROM tutor_db WHERE hashed_id = ?',i,function(e,r){
 			if(e){
 				socket.emit('server_to_client_update_failed', 'Err159. Select failed. Likely due to database is down. Trace:'+e);
 			}else{
@@ -568,15 +531,8 @@ function load_tt(socket,i){
 			socket.emit('server_to_client_update_failed', 'Err140 loading timetable failed. Trace: '+e);
 		}else{
 			socket.emit('clearblocks');
-			for (var j = 0; j<rows.length; j++){				
-				if(socket.admin==1||socket.admin==2){
-					socket.emit('add_lesson_block',rows[j]);
-				}else{
-					
-					if(rows[j].tutorname==socket.name){
-						socket.emit('add_lesson_block',rows[j]);
-					}
-				}
+			for (var j = 0; j<rows.length; j++){
+				socket.emit('add_lesson_block',rows[j]);
 			}
 			socket.emit('server_to_client_tablename',i.newchannel);
 			
@@ -628,12 +584,13 @@ function check_listener(socket,timetablename){
 
 app.use(express.static('public'));
 
+/*
+app.get('/', function (req,res){
+	res.sendfile('login.html');
+});
+*/
 app.get('/', function (req,res){
 	res.sendfile('tt.html');
 });
 
-
-app.set('port', process.env.OPENSHIFT_NODEJS_PORT || process.env.PORT || 3002 );
-app.set('ip', process.env.OPENSHIFT_NODEJS_IP || "127.0.0.1");
-
-server.listen(app.get('port'),app.get('ip'));
+server.listen(3000);

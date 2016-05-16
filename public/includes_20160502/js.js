@@ -1,41 +1,6 @@
+var socket = io();
 
-var socket = io.connect('http://timetable-gened.rhcloud.com:8000/',function(){
-	//'forceNew':true,
-});
-//*/
-/*var socket = io();//*/
 $(document).ready(function(){
-	
-	/* large device */
-	$('#id_scaffold_overlay_carousel').css('width','100%');
-	$('#id_scaffold_parent_carousel').css('width','100%');
-		
-	
-	var loginhandler = {
-		'show.bs.modal'	: function(){
-			$('#id_screen,#id_pleaseloginfirst').animate({'opacity':'0.0'},400,function(){
-				$(this).css('display','none');
-			});		
-		},
-		'hide.bs.modal'	:	function(){
-			$('#id_screen,#id_pleaseloginfirst').css('display','block').animate({'opacity':'0.7'},400,function(){
-			});	
-		}
-	}
-	
-	$(window).resize(function(){
-		
-		/* large device */
-		$('#id_scaffold_overlay_carousel').css('width','100%');
-		$('#id_scaffold_parent_carousel').css('width','100%');
-
-		rearrange_blocks();
-	});
-	
-	$('#modal_warning')
-	.on('shown.bs.modal',function(){
-		$('#modal_warning .btn-default').focus();
-	});
 	
 	$('#nav_login').click(function(){
 		$('#modal_login').modal('show');
@@ -53,19 +18,12 @@ $(document).ready(function(){
 		}else{
 			$(this).parent().parent().removeClass('has-error');
 			$(this).tooltip('hide');
+			
 		}
 	});
 	
-	$('#id_pleaseloginfirst img').click(function(){
-		$('#nav_login').click();
-	});
-	
-	$('#modal_login').on(loginhandler);
-	
 	$('#modal_login')
-	.modal('show')
 	.on('shown.bs.modal',function(){
-		
 		$('#modal_login #id_login_email').focus();
 		$('#modal_login').off('keypress').on('keypress',function(i){
 			if(i.which==13){
@@ -88,53 +46,11 @@ $(document).ready(function(){
 						'usr'	:$('#modal_login #id_login_email').val(),
 						'pswd'	:$.sha256($('#modal_login #id_login_pswd').val())
 						}
-						
-					/* prevent user from clicking login multiple times */
-					$('#modal_login .btn-success').prop('disabled',true);
-					$('#modal_login .btn-success').html('Logging in ...');
-					
 					socket.emit('login',json,function(o){
-						if(o.message=='login ok'){
+						console.log(o);
+						if(o=='login ok'){
 							/* login ok */
-							
-							/* change the login button bacck to login */
-							$('#modal_login .btn-success').html('Login');
-							
-							/* change the img of login to loading and remove the click listener */
-							$('#id_pleaseloginfirst img').attr('src','includes/loading.png');
-							$('#id_pleaseloginfirst').off('tap');
-							
-							/* hide the login modal to show loading screen */
-							$('#modal_login')
-							.modal('hide');
-							
-							$('#nav_login')
-							.off('click')
-							.html('<span class = "glyphicon glyphicon-log-out"></span> Logout')
-							.click(function(){
-								location.reload();
-							});
-							
-							switch(o.admin){
-								case 0:
-									$('#id_tutormodal_hashed_id').val(o.hashed_id);
-									$('#id_tutorname').prop('disabled',true);
-									tutor_lvl0_binding();							
-								break;
-								case 1:
-									$('#id_tutormodal_hashed_id').val(o.hashed_id);
-									tutor_lvl1_binding();
-								break;
-								case 2:
-									tutor_lvl2_binding();
-								break;
-								default:
-								break;
-							}
-						}else if (o.message =='wrong pswd'){
-							$('#modal_login .btn-success').prop('disabled',false);
-							$('#modal_login .btn-success').html('Login');
-							
+						}else if (o =='wrong pswd'){
 							$('#modal_warning .modal-title').html('Warning');
 							$('#modal_warning .modal-body').html('Incorrect user email or password!');
 							$('#modal_warning').modal('show');
@@ -149,128 +65,7 @@ $(document).ready(function(){
 		$('#modal_login input').tooltip('hide');
 	});
 	
-	$('#modal_edit_tutor')
-	.on('shown.bs.modal',function(){
-		$('#modal_edit_tutor .btn-success').off('click').click(function(){
-			$('#modal_edit_tutor .btn-success').prop('disabled',true);
-			var json = {
-				'hashed_id':$('#id_tutormodal_hashed_id').val(),
-				'name':$('#id_tutormodal_name').val(),
-				'mobileno':$('#id_tutormodal_mobile').val(),
-				'email':$('#id_tutormodal_email').val(),
-				'admin':$('#id_tutormodal_admin').val()};
-				
-			switch($('#modal_edit_tutor .modal-header h4').html().substring(0,3)){
-				case 'Upd':
-					if($('#pswd_block').hasClass('in')){
-						if(socket.admin==2){
-							$('#pswd_block input:not(:first-child)').each(function(){
-								$(this).focus().blur();
-							});
-						}else{
-							$('#pswd_block input').each(function(){
-								$(this).focus().blur();
-							});
-						}
-						if($('#pswd_block').children('div').hasClass('has-error')){
-							return false;
-						}
-						if(socket.admin==2){
-							json['newpswd']=$.sha256($('#id_tutormodal_newpswd').val());
-						}else{
-							json['oldpswd']=$.sha256($('#id_tutormodal_oldpswd').val());
-							json['newpswd']=$.sha256($('#id_tutormodal_newpswd').val());
-						}
-					}
-					socket.emit('update_existing_tutor',json,function(o){
-						$('#modal_edit_tutor .btn-success').prop('disabled',false);
-						switch(o){
-							case 'wrong_old_pswd':
-								$('#id_tutormodal_oldpswd')
-								.tooltip({
-									title: 'Incorrect password.'
-								})
-								.tooltip('show')
-								.parent().parent().addClass('has-error')
-								.keypress(function(){
-									$(this).tooltip('hide');
-									$(this).parent().parent().removeClass('has-error');
-									$(this).off('keypress');
-								})
-							break;
-							case 'same_email':
-								$('#id_tutormodal_email').tooltip('show');
-								$('#id_tutormodal_email').parent().parent().addClass('has-error');
-							break;
-							case 'update_completed':
-								
-								$('#modal_tutor_row #'+json.hashed_id+' div:nth-child(1)').html(json.name);
-								$('#modal_tutor_row #'+json.hashed_id+' div:nth-child(2)').html(json.mobileno);
-								$('#modal_tutor_row #'+json.hashed_id+' div:nth-child(3)').html(json.email);
-								
-								$('#modal_edit_tutor').modal('hide');
-								
-								$('#modal_warning .modal-title').html('Notice');
-								$('#modal_warning .modal-body').html('Existing tutor updated.');
-								$('#modal_warning').modal('show');
-								
-							break;
-							default:
-								//shouldn't be anything here
-							break;
-						}
-					});
-				break;
-				case 'Add':
-					json['now']=$.sha256(Date.now());
-					json['newpswd']=$.sha256($('#id_tutormodal_newpswd').val());
-					socket.emit('add_new_tutor',json,function(o){
-						
-						$('#modal_edit_tutor .btn-success').prop('disabled',false);
-						
-						if(o=='add_new_tutor_complete'){
-							$('#modal_edit_tutor').modal('hide');
-							json['hashed_id']=json['now'];
-							append_tutor_entry(json);
-							$('#modal_tutor #id_addnewtutor').insertAfter($('#modal_tutor .modal_tutor_unit').last());
-							
-							$('#modal_warning .modal-title').html('Notice');
-							$('#modal_warning .modal-body').html('New tutor Added.');
-							$('#modal_warning').modal('show');
-						}
-					});
-				break;
-				default:
-				
-				break;
-			}
-		});
-		
-		$('#id_tutormodal_name').select();
-		$('#modal_edit_tutor').keypress(function(i){
-			if(i.which==13){
-				$('#modal_edit_tutor .btn-success').click();
-			}
-		})
-	})
-	.on('hidden.bs.modal',function(){
-		$('#modal_edit_tutor .btn-success').off('click');
-		$('#modal_edit_tutor').off('keypress');
-	});
-});
-
-
-function tutor_lvl2_binding(){
-	
-	/* show buttons */
-	$('#nav_students').css('display','block');
-	$('#popup_addtutor').css('display','block');
-	
-	/* bind functions */
-	tutor_lvl1_binding();
-	
-	/* bind add new tutor button at add class block */
-	$('#popup_addtutor').off('click').click(function(){
+	$('#popup_addtutor').click(function(){
 		$('#id_tutormodal_oldpswd').prop('disabled',true);
 		$('#pswd_block').removeClass('collapse');
 		$('#pswd_block').css('height','153px');
@@ -280,69 +75,6 @@ function tutor_lvl2_binding(){
 		$('#modal_edit_tutor h4').last().html('Password');
 	});
 	
-	/* bind tutors profile button */
-	$('#nav_profiles').off('click').click(function(){
-		$('#modal_tutor').modal('show');
-		$('#modal_tutor_row').empty();
-		socket.emit('load_profiles','me',function(json){
-		})
-	});
-	
-	
-	socket.on('append_add_new_tutor_button',function(){
-		$('#modal_tutor_row').append('<div id = "id_addnewtutor" class = "col-xs-12"><button class = "col-xs-12 btn btn-default btn-lg btn-primary">Add a new tutor</button></div>');
-		
-		/* when add a new tutor is been added, also bind click event listeners */
-		$('#modal_tutor_row .btn-primary').off('click').click(function(){
-			
-			/* clicking add a new tutor */
-			$('#id_tutormodal_oldpswd').prop('disabled',true);
-			$('#pswd_block').removeClass('collapse');
-			$('#pswd_block').css('height','153px');
-			$('#modal_edit_tutor input').val('');
-			$('#modal_edit_tutor').modal('show');
-			$('#modal_edit_tutor .modal-title').html('Adding a new tutor');
-			$('#modal_edit_tutor h4').last().html('Password');
-		})
-	});
-	
-	/* populating tutor modal */
-	socket.on('send_profile',function(json){
-		append_tutor_entry(json);
-	});
-	/*  */
-}
-
-function tutor_lvl1_binding(){
-	
-	/* show buttons */
-	$('#nav_profiles').css('display','block');
-	$('#id_navbar_ttcontrol li').css('display','block');
-	
-	/* binding functions */
-	
-	/* bind clicking tutor profile button */
-	$('#nav_profiles').click(function(){
-		socket.emit('edit_tutor',$('#id_tutormodal_hashed_id').val(),function(json){
-			
-			$('#id_tutormodal_oldpswd').prop('disabled',false);
-			$('#pswd_block').addClass('collapse');
-			$('#pswd_block').collapse('hide');
-			$('#modal_edit_tutor').modal('show');
-			$('#modal_edit_tutor .modal-title').html('Updating an existing tutor');
-			
-			$('#id_tutormodal_name').val(json[0].name);
-			$('#id_tutormodal_email').val(json[0].email);
-			$('#id_tutormodal_mobile').val(json[0].mobileno);
-			$('#id_tutormodal_hashed_id').val(json[0].hashed_id);
-			
-			$('#modal_edit_tutor h4').last().html('<a href = "#pswd_block" data-toggle = "collapse">Password</a>');
-
-			
-		});
-	});
-	
-	/* edit tutor info modal fn */
 	$('#id_tutormodal_email')
 	.tooltip({
 		title:		'Email address in use. Please choose an unique e-mail address',
@@ -418,6 +150,137 @@ function tutor_lvl1_binding(){
 		$('#pswd_block input').val('');
 		$('#pswd_block .has-error').removeClass('has-error');
 		$('#pswd_block input').tooltip('hide');
+	})
+	
+	$('#modal_warning')
+	.on('shown.bs.modal',function(){
+		$('#modal_warning .btn-default').focus();
+	})
+	
+	/* nav_tutor document ready binding */
+	$('#nav_profiles').click(function(){
+		$('#modal_tutor').modal('show');
+		$('#modal_tutor_row').empty();
+		socket.emit('load_profiles','me',function(json){
+		})
+	})
+	
+	socket.on('append_tutor_slot',function(o){
+		$('#id_edit_block_popup #id_tutorname').append('<option>'+o+'</option>');
+	});
+	
+	socket.on('append_add_new_tutor_button',function(){
+		$('#modal_tutor_row').append('<div id = "id_addnewtutor" class = "col-xs-12"><button class = "col-xs-12 btn btn-default btn-lg btn-primary">Add a new tutor</button></div>');
+		
+		/* when add a new tutor is been added, also bind click event listeners */
+		$('#modal_tutor_row .btn-primary').off('click').click(function(){
+			
+			/* clicking add a new tutor */
+			$('#id_tutormodal_oldpswd').prop('disabled',true);
+			$('#pswd_block').removeClass('collapse');
+			$('#pswd_block').css('height','153px');
+			$('#modal_edit_tutor input').val('');
+			$('#modal_edit_tutor').modal('show');
+			$('#modal_edit_tutor .modal-title').html('Adding a new tutor');
+			$('#modal_edit_tutor h4').last().html('Password');
+		})
+	});
+	
+	$('#modal_edit_tutor')
+	.on('shown.bs.modal',function(){
+		$('#modal_edit_tutor .btn-success').off('click').click(function(){
+			var json = {
+				'hashed_id':$('#id_tutormodal_hashed_id').val(),
+				'name':$('#id_tutormodal_name').val(),
+				'mobileno':$('#id_tutormodal_mobile').val(),
+				'email':$('#id_tutormodal_email').val()};
+				
+			switch($('#modal_edit_tutor .modal-header h4').html().substring(0,3)){
+				case 'Upd':
+					if($('#pswd_block').hasClass('in')){
+						$('#pswd_block input').each(function(){
+							$(this).focus().blur();
+						})
+						if($('#pswd_block').children('div').hasClass('has-error')){
+							return false;
+						}
+						json['oldpswd']=$.sha256($('#id_tutormodal_oldpswd').val());
+						json['newpswd']=$.sha256($('#id_tutormodal_newpswd').val());
+					}
+					socket.emit('update_existing_tutor',json,function(o){
+						switch(o){
+							case 'wrong_old_pswd':
+								$('#id_tutormodal_oldpswd')
+								.tooltip({
+									title: 'Incorrect password.'
+								})
+								.tooltip('show')
+								.parent().parent().addClass('has-error')
+								.keypress(function(){
+									$(this).tooltip('hide');
+									$(this).parent().parent().removeClass('has-error');
+									$(this).off('keypress');
+								})
+							break;
+							case 'same_email':
+								$('#id_tutormodal_email').tooltip('show');
+								$('#id_tutormodal_email').parent().parent().addClass('has-error');
+							break;
+							case 'update_completed':
+								
+								$('#modal_tutor_row #'+json.hashed_id+' div:nth-child(1)').html(json.name);
+								$('#modal_tutor_row #'+json.hashed_id+' div:nth-child(2)').html(json.mobileno);
+								$('#modal_tutor_row #'+json.hashed_id+' div:nth-child(3)').html(json.email);
+								
+								$('#modal_edit_tutor').modal('hide');
+								
+								$('#modal_warning .modal-title').html('Notice');
+								$('#modal_warning .modal-body').html('Existing tutor updated.');
+								$('#modal_warning').modal('show');
+								
+							break;
+							default:
+								//shouldn't be anything here
+							break;
+						}
+					});
+				break;
+				case 'Add':
+					json['now']=$.sha256(Date.now());
+					json['newpswd']=$.sha256($('#id_tutormodal_newpswd').val());
+					socket.emit('add_new_tutor',json,function(o){
+						if(o=='add_new_tutor_complete'){
+							$('#modal_edit_tutor').modal('hide');
+							json['hashed_id']=json['now'];
+							append_tutor_entry(json);
+							$('#modal_tutor #id_addnewtutor').insertAfter($('#modal_tutor .modal_tutor_unit').last());
+							
+							$('#modal_warning .modal-title').html('Notice');
+							$('#modal_warning .modal-body').html('New tutor Added.');
+							$('#modal_warning').modal('show');
+						}
+					});
+				break;
+				default:
+				
+				break;
+			}
+		});
+		
+		$('#id_tutormodal_name').select();
+		$('#modal_edit_tutor').keypress(function(i){
+			if(i.which==13){
+				$('#modal_edit_tutor .btn-success').click();
+			}
+		})
+	})
+	.on('hidden.bs.modal',function(){
+		$('#modal_edit_tutor .btn-success').off('click');
+		$('#modal_edit_tutor').off('keypress');
+	});
+	
+	socket.on('send_profile',function(json){
+		append_tutor_entry(json);
 	});
 	
 	/* populate the filter modal with relevant information */
@@ -442,8 +305,6 @@ function tutor_lvl1_binding(){
 			
 			/* because populate_modal_filter unbinds click listeners, also resets the colours of nonactive panels */
 			populate_modal_filter();
-			$('.noshow').removeClass('noshow');
-			rearrange_blocks();
 			
 			$(this).children('div.panel-body').children('button').off('click').click(function(){
 				if($(this).parent().parent().hasClass('panel-primary')){
@@ -451,7 +312,7 @@ function tutor_lvl1_binding(){
 					modal_filter_button_click($(this));
 					update_lesson_blocks_tt();
 				}
-			});
+			})
 		}
 	});
 	
@@ -462,19 +323,22 @@ function tutor_lvl1_binding(){
 	$('#modal_filter')
 	.on('show.bs.modal',function(){
 		if($('#modal_filter .panel-primary .panel-body button').length==0){
-			
-			/* when modal filter is expanding, if it has not been populated, populate it */
 			populate_modal_filter();
 			update_lesson_block_color();
 			$('#modal_filter .panel-primary .panel-body button').click(function(){
 				modal_filter_button_click($(this));
 				update_lesson_blocks_tt();
 			});
+			
 		}
-	});
+	})
 	
+	/*
+	.on('hide.bs.modal',function(){
+		$('#modal_filter .panel').off('click');
+	})
+	*/
 	
-	/* key functionality */
 	socket.on('server_to_client_tablename',function(tablename){
 		$('#nav_name').html(tablename.substring(3));
 	});
@@ -483,80 +347,6 @@ function tutor_lvl1_binding(){
 		add_lesson_block(lessonblock_json);
 	});
 	
-	socket.on('clearblocks',function(){
-		$('#id_scaffold_overlay_carousel').children('div').empty();
-	});
-	
-	socket.on('server_to_all_tt_deleted',function(){
-		/* current timetable deleted. load modal info, load the next timetable.  */
-		$('#modal_warning .modal-title').html('Warning');
-		$('#modal_warning .modal-body').html('Another user has deleted this timetable. You will now be transferred to another timetable.');
-		$('#modal_warning').modal('show');
-		socket.emit('on_document_load');
-	});
-	
-	/* server.js will decide what is to be loaded, and what is not */
-	socket.emit('on_document_load',function(o){
-		socket.admin = o.admin;
-		socket.name = o.name;
-		if(socket.admin==2){
-			var admincontrol = 
-				'<div class = "form-group">'+
-					'<label class = "control-label col-xs-5 col-sm-5 col-md-3" for = "id_tutormodal_admin">Admin Level:</label>'+
-					'<div class = "col-xs-3 col-sm-3 col-md-2 col-lg-2">'+
-						'<select class = "form-control" id = "id_tutormodal_admin">'+
-							'<option>0</option>'+
-							'<option>1</option>'+
-							'<option>2</option>'+
-						'</select>'+
-					'</div>'+
-					'<div class = "col-xs-offset-3 col-sm-offset-3 col-xs-9 col-sm-9 col-md-7 col-lg-7">0 - tutor<br> 1 - timetable archivist<br> 2 - skynet</div>'+
-				'</div>';
-			if($('#id_tutormodal_admin').length==0){
-				$(admincontrol).insertAfter($('#id_admin_anchor'));
-			}
-		}
-	});
-	
-	socket.on('server_to_client_rearrange_blocks',function(){
-		rearrange_blocks();
-				
-		dismiss_loading();
-	})
-	
-	socket.on('server_to_all_update_block',function(i){
-		
-		//$('#'+i.hashed_id).remove(); //does not work somehow
-		
-		if(socket.admin==0){
-			if(i.tutorname==socket.name){
-				$('div').remove('#'+i.hashed_id);
-				add_lesson_block(i);
-				
-				rearrange_blocks();
-			}
-		}else if(socket.admin==1||socket.admin==2){		
-			$('div').remove('#'+i.hashed_id);
-			add_lesson_block(i);
-			
-			rearrange_blocks();
-		}
-	});
-	
-	socket.on('server_to_client_update_failed',function(err){
-		//failure state here
-		$('#modal_warning .modal-title').html('Warning');
-		$('#modal_warning .modal-body').html(err);
-		$('#modal_warning').modal('show');
-	});
-	
-	socket.on('server_to_all_remove_block',function(i){
-		$('#'+i).remove();
-		rearrange_blocks();
-	});
-	
-	
-	/* list of timetables modal */
 	$('#nav_tt')
 	.modal({keyboard: true,show:false})
 	.on('hide.bs.modal',function(){
@@ -638,7 +428,6 @@ function tutor_lvl1_binding(){
 		
 	});
 	
-	/* creating new timetable */
 	$('#nav_new').click(function(){
 		$('#nav_tt').modal('show')	
 		.on('shown.bs.modal',function(){
@@ -662,7 +451,6 @@ function tutor_lvl1_binding(){
 		
 	});
 	
-	/* save a copy */
 	$('#nav_saveacopy').click(function(){
 		$('#nav_tt').modal('show')
 		.on('shown.bs.modal',function(){
@@ -683,8 +471,7 @@ function tutor_lvl1_binding(){
 		});
 	});
 	
-	/* rename the timetable */
-	$('#nav_rename').click(function(){
+	$('#nav_name').click(function(){
 		$('#nav_tt').modal('show')
 		.on('shown.bs.modal',function(){
 			$('#id_input_modal_tt').val($('#nav_name').html());
@@ -706,7 +493,6 @@ function tutor_lvl1_binding(){
 		});
 	});
 	
-	/* load and edit a new timetable */
 	$('#nav_load').click(function(){
 		$('#nav_tt').modal('show');
 		$('#nav_tt h4').html('Load Timetable');
@@ -719,7 +505,7 @@ function tutor_lvl1_binding(){
 		socket.emit('tt_load',function(jsonO){
 			populate_tt_modal(jsonO);
 			$('#modal_tt').children('div').each(function(){
-				$(this).append('<div class = "col-md-2"><button type="button" class="delete_tt_button btn btn-danger" id="id_button_tt_delete_'+$(this).children('div:first-child').html()+'">Delete</button></div>');
+				$(this).append('<div class = "col-xs-2"><button type="button" class="delete_tt_button btn btn-danger" id="id_button_tt_delete_'+$(this).children('div:first-child').html()+'">Delete</button></div>');
 			});
 			$('.modal_load_tt_unit').off('click').click(function(){
 				var jsonO = {};
@@ -727,8 +513,6 @@ function tutor_lvl1_binding(){
 				jsonO['newchannel']='tt_'+$(this).children('div:first-child').html();
 				socket.emit('tt_load_tt',jsonO);
 				$('#nav_tt').modal('hide');
-				
-				loading();
 			});
 			$('.delete_tt_button').off('click').click(function(){
 				if(confirm('Are you sure you want to delete this timetable?\n\nThis action cannot be undone.')){
@@ -750,16 +534,21 @@ function tutor_lvl1_binding(){
 	
 	bind_fn_creating_blocks();
 	
-	/* block control */
-	
-	socket.on('append_tutor_slot',function(o){
-		if(socket.admin==0&&socket.name==o){
-			$('#id_edit_block_popup #id_tutorname').append('<option id = "id_tutorname_'+o.replace(/ /g,'')+'">'+o+'</option>');
-		}else if (socket.admin==1||socket.admin==2){
-			$('#id_edit_block_popup #id_tutorname').append('<option id = "id_tutorname_'+o.replace(/ /g,'')+'">'+o+'</option>');			
-		}
+	socket.on('clearblocks',function(){
+		$('#id_table_scaffold_overlay div').empty();
 	});
 	
+	socket.on('server_to_all_tt_deleted',function(){
+		/* current timetable deleted. load modal info, load the next timetable.  */
+		$('#modal_warning .modal-title').html('Warning');
+		$('#modal_warning .modal-body').html('Another user has deleted this timetable. You will now be transferred to another timetable.');
+		$('#modal_warning').modal('show');
+		socket.emit('on_document_load');
+	});
+	
+	$('#id_screen,#cancel_button').click(function(){
+		reset_block();
+	});
 	
 	$('#delete_button').click(function(){
 		delete_block();
@@ -768,32 +557,40 @@ function tutor_lvl1_binding(){
 	});
 	
 	$('#save_button').click(function(){
-		$(this).prop('disabled',true);
 		save_block();
 	});
 	
-}
-
-function tutor_lvl0_binding(){
+	socket.emit('on_document_load','data',function(i){
+		//console.log(b);
+		
+	});
 	
-	tutor_lvl1_binding();
-	$('#id_navbar_ttcontrol li').css('display','none');
-}
-
-function loading(){	
-	$('#id_pleaseloginfirst img').attr('src','/includes/loading.png');
-	$('#id_screen_container,#id_screen,#id_pleaseloginfirst').off().css({
-		'opacity'	:'0.0',
-		'display'	:'block'}).animate({'opacity':'0.7'},400,function(){
-	});	
-	populate_modal_filter();
-}
-
-function dismiss_loading(){
-	$('#id_screen,#id_pleaseloginfirst').off().animate({'opacity':'0.0'},400,function(){
-		$('#id_screen_container,#id_screen,#id_pleaseloginfirst').css('display','none');
-	});	
-}
+	socket.on('server_to_client_rearrange_blocks',function(){
+		rearrange_blocks();
+	})
+	
+	socket.on('server_to_all_update_block',function(i){
+		
+		//$('#'+i.hashed_id).remove(); //does not work somehow
+		$('div').remove('#'+i.hashed_id);
+		add_lesson_block(i);
+		
+		rearrange_blocks();
+	});
+	
+	socket.on('server_to_client_update_failed',function(err){
+		//failure state here
+		$('#modal_warning .modal-title').html('Warning');
+		$('#modal_warning .modal-body').html(err);
+		$('#modal_warning').modal('show');
+	});
+	
+	socket.on('server_to_all_remove_block',function(i){
+		$('#'+i).remove();
+		rearrange_blocks();
+	});
+	
+});
 
 function check_same_pswd(){
 	if($('#id_tutormodal_newpswd_reenter').val()!=$('#id_tutormodal_newpswd').val()){
@@ -805,10 +602,10 @@ function check_same_pswd(){
 
 function append_tutor_entry(json){	
 	$('#modal_tutor_row').append('<div class = "col-xs-12 modal_tutor_unit" id = "'+json.hashed_id+'">'+
-	'<div class = "col-md-3">'+json.name+'</div>'+
-	'<div class = "col-md-3">'+json.mobileno+'</div>'+
-	'<div class = "col-md-4">'+json.email+'</div>'+
-	'<div class = "col-md-2"><button class = "btn btn-danger">Delete</button></div>'+
+	'<div class = "col-xs-3">'+json.name+'</div>'+
+	'<div class = "col-xs-3">'+json.mobileno+'</div>'+
+	'<div class = "col-xs-4">'+json.email+'</div>'+
+	'<div class = "col-xs-2"><button class = "btn btn-danger">Delete</button></div>'+
 	'</div>');
 	
 	
@@ -828,18 +625,12 @@ function append_tutor_entry(json){
 		/* return false, so won't load the tutor profile */
 		return false;
 	});
-	
 	$('.modal_tutor_unit:last-child').click(function(){
 		socket.emit('edit_tutor',$(this).attr('id'),function(json){
 			
 			/* clicking on the existing tutor slot */
 			
-			if(socket.admin==2){
-				$('#id_tutormodal_admin').val(json[0].admin);
-			}
-			
-			//$('#id_tutormodal_oldpswd').prop('disabled',false);
-			$('#id_tutormodal_oldpswd').prop('disabled',true);
+			$('#id_tutormodal_oldpswd').prop('disabled',false);
 			$('#pswd_block').addClass('collapse');
 			$('#pswd_block').collapse('hide');
 			$('#modal_edit_tutor').modal('show');
@@ -912,7 +703,7 @@ function populate_modal_filter(){
 	$('#panel_tutor').children('div.panel-body').empty();
 	$('#panel_location').children('div.panel-body').empty();
 	
-	$('div.lessonblock').each(function(){
+	$('div#id_table_scaffold_overlay div div.lessonblock').each(function(){
 		populate_modal_filter_class($(this).children('.lessonblock_classname').html());
 		populate_modal_filter_tutor($(this).children('.lessonblock_tutorname').html());
 		populate_modal_filter_location($(this).children('.lessonblock_location').html());
@@ -933,34 +724,37 @@ function populate_modal_filter(){
 }
 
 function order_filter_button(i){
-	
-	$('#id_button_special').insertAfter($('#panel_class').children('div.panel-body').children('button:last-child'));
-	var bwrapper = $('#panel_class').children('div.panel-body');
-	for (i = 2; i<bwrapper.children('button').length;i++){
-		for (j=1;j<i;j++){
-			var mpiece = bwrapper.children('button:nth-child('+i+')');
-			var cpiece = bwrapper.children('button:nth-child('+j+')')
-			var moving = Number(bwrapper.children('button:nth-child('+i+')').html().substring(1));
-			var compare1 = Number(bwrapper.children('button:nth-child('+j+')').html().substring(1));
-			if (j==0&&moving<compare1){
-				mpiece.insertBefore(cpiece);
-				continue;
-			}else if (j==i-1){
-				if(moving>compare1){
-					mpiece.insertAfter(cpiece);
-				}else if (moving<compare1){
-					mpiece.insertBefore(cpiece);
-				}
-			}else{
-				var compare2 = Number(bwrapper.children('button:nth-child('+(j+1)+')').html().substring(1));
-				if(moving > compare1 && moving < compare2){
-					mpiece.insertAfter(cpiece);
-					continue;
+	$('#panel_class').children('div.panel-body').children('button:not(#id_button_special)').each(function(){
+		var b1 = $(this);
+		$('#panel_class').children('div.panel-body').children('button:not(#id_button_special)').each(function(){
+			var b2 = $(this);
+			if(b1.html()!=b2.html()){
+				if(Number(b1.html().substring(1))>Number(b2.html().substring(1))){
+					b1.insertAfter(b2);
+				}else{
+					b2.insertAfter(b1);
 				}
 			}
-		}
-	}
+		})
+	})
+	$('#id_button_special').insertAfter($('#panel_class').children('div.panel-body').children('button:last-child'));
 	
+	var a=['tutor','location'];
+	for (i=0;i<a.length;i++){
+		$('#panel_'+a[i]).children('div.panel-body').children('button').each(function(){
+			var b1 = $(this);
+			$('#panel_'+a[i]).children('div.panel-body').children('button').each(function(){
+				var b2 = $(this);
+				if(b1.html()!=b2.html()){
+					if(b1.html()>b2.html()){
+						b1.insertAfter(b2);
+					}else{
+						b2.insertAfter(b1);
+					}
+				}
+			});
+		});
+	}
 	$('#id_button_notutorassigned').insertAfter($('#panel_tutor').children('div.panel-body').children('button:last-child'));
 	$('#id_button_NoLocationAssigned').insertAfter($('#panel_location').children('div.panel-body').children('button:last-child'));
 	
@@ -992,6 +786,73 @@ function color_blocks(i){
 		
 		break;
 	}
+}
+
+function choose_color(i){
+	
+	/* place custom colour palette here */
+	
+	switch(i){
+		case 'Y1':
+			return '#F2AEAE'
+		break;
+		
+		case 'Y2':
+			return '#F09D9D'
+		break;
+		
+		case 'Y3':
+			return '#EE8D8D'
+		break;
+		
+		case 'Y4':
+			return '#EB7D7D'
+		break;
+		
+		case 'Y5':
+			return '#E86C6C'
+		break;
+		
+		case 'Y6':
+			return '#E65C5C'
+		break;
+		
+		case 'Y7':
+			return '#4D7EC9'
+		break;
+		
+		case 'Y8':
+			return '#336CC1'
+		break;
+		
+		case 'Y9':
+			return '#1959BA'
+		break;
+		
+		case 'Y10':
+			return '#0047B2';
+		break;
+		
+		case 'Y11':
+			return '#D6AD33'
+		break;
+		
+		case 'Y12':
+			return '#c90'
+		break;
+		case 'special':
+		case 'notutorassigned':
+		case 'NoLocationAssigned':
+			return '#ccc'
+		break;
+	}
+	
+	var str = $.sha256(i); 
+	R = (str.charCodeAt(0)*str.charCodeAt(1))%255;
+	G = (str.charCodeAt(2)*str.charCodeAt(3))%255;
+	B = (str.charCodeAt(4)*str.charCodeAt(5))%255;
+	return 'rgb(' + R + ',' + G + ','+ B + ')';
+	
 }
 
 function deheaded_string_to_number(i){
@@ -1147,8 +1008,8 @@ function populate_tt_modal_input(i){
 	$('#nav_tt div.modal-body').append(
 	'<div class = "row">'+
 		'<div class = "form-group">'+
-			'<label class = "control-label col-md-3" for = "id_input_modal_tt">'+i+':</label>'+
-			'<div class = "col-md-5">'+
+			'<label class = "col-xs-2 control-label" for = "id_input_modal_tt">'+i+':</label>'+
+			'<div class = "col-xs-6">'+
 				'<input type = "text" data-placement="right" class = "modal-input form-control input-sm" id = "id_input_modal_tt">'+
 			'</div>'+
 		'</div>'+
@@ -1159,8 +1020,8 @@ function populate_tt_modal(jsonO){
 	for (i=0;i<Object.keys(jsonO).length;i++){
 		$('#modal_tt').append('<div id ="modal_load_tt_unit_'+i+'" class = "col-xs-12 modal_load_tt_unit'+ (jsonO[i][0]==$('#nav_name').html() ? ' activett' : '' )+'"></div>');
 		$('#modal_load_tt_unit_'+i)
-		.append('<div class = "col-md-3">'+jsonO[i][0]+'</div>')
-		.append('<div class = "col-md-7">'+jsonO[i][1].split('T')[0]+'</div>')
+		.append('<div class = "col-xs-3">'+jsonO[i][0]+'</div>')
+		.append('<div class = "col-xs-7">'+jsonO[i][1].split('T')[0]+'</div>')
 	}
 }
 
@@ -1253,16 +1114,13 @@ function save_block(){
 	if($('.activeblock').hasClass('newblock')){
 		$('.activeblock').attr('id',$.sha256(Date.now()));
 		$.extend(item, {'hashed_id':$('.activeblock').attr('id')});
-		socket.emit('save_new_block',item,function(o){
-			
-		});
+		socket.emit('save_new_block',item);
 	}else{
 		$.extend(item, {'hashed_id':$('.activeblock').attr('id')});
-		socket.emit('save_existing_block',item,function(o){
-			
-		});
+		socket.emit('save_existing_block',item);
 	}
 	$('.activeblock').off().removeClass().addClass('inprogress').on('mousedown',function(){return false;});
+	
 	dismiss_editblock();
 }
 
@@ -1309,7 +1167,8 @@ function bind_fn_lessonblocks(){
 		$(document)
 		.on('mousemove',function(m){
 			var rm = relative_offsetY(m,'#id_table_scaffold');
-			var rmx = relative_offsetX(m,'#id_scaffold_overlay_carousel');
+			var rmx = relative_offsetX(m,'#id_table_scaffold');
+			
 			$('.activeblock').addClass('inprogress');
 			
 			if(flag == 'default'){
@@ -1392,7 +1251,7 @@ function bind_fn_lessonblocks(){
 function bind_fn_creating_blocks(){
 	
 	//binding overlay element with on mouse down event
-	$('#id_scaffold_overlay_carousel').children('div').off('mousedown').on('mousedown',function(d){
+	$('#id_table_scaffold_overlay div:not(:first-child)').on('mousedown',function(d){
 		
 		//if not a left click, terminate the function
 		if(d.which!=1||d.offsetY<35){return false;}
@@ -1431,7 +1290,7 @@ function bind_fn_creating_blocks(){
 			$(document).off('mouseup');
 			$(document).off('mousemove');
 		});
-	});	
+	});
 }
 
 function populate_edit_block(){
@@ -1442,36 +1301,23 @@ function populate_edit_block(){
 		}else{
 		}
 	});
-	
-	/* for mobile users */
-	//$('#id_tutorname_'+$('.activeblock span.lessonblock_tutorname').html().replace(/ /g,'')).prop('selected',true);
-	
-	/* if there is only 1 option in select tutors, then select it. This is either because a tutor with lvl0admin is logged in, or there really is only 1 tutor in the db  */
-	if($('#id_tutorname option').length==2){
-		$('#id_tutorname option:last-child').prop('selected',true);
-	}
 }
 
 function call_editblock(){
 	
-	
-	$('#id_screen,#cancel_button').off('click').click(function(){
-		reset_block();
-	});
-	
 	/* shows edit block dialogue */
 	$('#id_screen_container').css('display','block');
 	
-	$('#id_screen,#id_edit_block_popup').css({'display':'block','opacity':'0.0'});
+	
+	$('#id_screen,#id_edit_block_popup').css('opacity','0.0');
 	$('#id_screen').animate({'opacity':'0.7'},200);
 	$('#id_edit_block_popup').animate({'opacity':'1.0'},400);
-
 	
 	/* position the dialogue */
-	if($('.activeblock').parent().index()<5){
-		$('#id_edit_block_popup').removeClass().addClass('container col-xs-offset-1 col-sm-offset-1 col-xs-11 col-sm-11 col-md-5 col-md-offset-'+($('.activeblock').parent().index()+2));
-	}else if ($('.activeblock').parent().index()<7){
-		$('#id_edit_block_popup').removeClass().addClass('container col-xs-offset-1 col-sm-offset-1 col-xs-11 col-sm-11 col-md-5 col-md-offset-'+(($('.activeblock').parent().index()-5)*3+1));		
+	if($('.activeblock').parent().index()<6){
+		$('#id_edit_block_popup').removeClass().addClass('container col-sm-12 col-md-5 col-md-offset-'+($('.activeblock').parent().index()+1));
+	}else if ($('.activeblock').parent().index()<8){
+		$('#id_edit_block_popup').removeClass().addClass('container col-sm-12 col-md-5 col-md-offset-'+(($('.activeblock').parent().index()-6)*3+1));		
 	}
 	$('#id_edit_block_popup').css('top',parseInt($('.activeblock').css('top'))-20);
 	var editblock_bottom = parseInt($('#id_edit_block_popup').css('top'))+parseInt($('#id_edit_block_popup').css('height'));
@@ -1479,9 +1325,6 @@ function call_editblock(){
 	
 	if(editblock_bottom>table_saffold_bottom){
 		$('#id_edit_block_popup').css('top',parseInt($('#id_edit_block_popup').css('top'))-editblock_bottom+table_saffold_bottom);
-	}
-	if(parseInt($('#id_edit_block_popup').css('top'))<0){
-		$('#id_edit_block_popup').css('top',0);
 	}
 	
 	/* parsing position to time */
@@ -1493,7 +1336,7 @@ function call_editblock(){
 	$('#id_endtime').val(cvt_dec_to_time(endtime));
 	
 	/* updating the parsed day to the relevant field inside the edit block dialogue */
-	$('#id_day_'+(Number($('.activeblock').parent().index())+1)).prop('selected',true);
+	$('#id_day_'+$('.activeblock').parent().index()).prop('selected',true);
 	
 	/* focusing on the first field inside the edit block dialogue */
 	$('#id_classname').focus();
@@ -1543,11 +1386,13 @@ function relative_offsetX(e,r){
 
 function round_off_offsetX(i){
 	var o;
+	
 		$('.scaffold_overlay_unit').each(function(){
 			if($(this).position().left-i<0&&$(this).position().left+parseInt($(this).css('width'))-i>0){
 				o = $(this);
 			}
 		});
+	
 	return o;
 }
 
@@ -1563,43 +1408,27 @@ function round_off_offsetY(i){
 }
 
 function rearrange_blocks(){
-	$('#id_scaffold_overlay_carousel').children('div').each(function(){
+	$('div#id_table_scaffold_overlay').children('div').each(function(){
 		var dayblock = $(this);
-		
-		for (i = 2;i<dayblock.children('div:not(.noshow)').length+1;i++){
-			moving = parseInt(dayblock.children('div:not(.noshow):nth-child('+i+')').css('top'));
-			mpiece = dayblock.children('div:not(.noshow):nth-child('+i+')');
-			for (j = 1; j<i; j++){
-				compare1 = parseInt(dayblock.children('div:not(.noshow):nth-child('+j+')').css('top'));
-				cpiece = dayblock.children('div:not(.noshow):nth-child('+j+')');
-				if (j==1&&moving < compare1){
-					mpiece.insertBefore(cpiece);
-					continue;
-				}else if (j==i-1){
-					if(moving>=cpiece){
-						mpiece.insertAfter(cpiece);
-					}else if (moving<cpiece){
-						mpiece.insertBefore(cpiece);
-					}
+		dayblock.children('div:not(.noshow)').each(function(){
+			var block1 = $(this);
+			dayblock.children('div:not(.noshow)').each(function(){
+				var block2 = $(this);
+				if (parseInt(block1.css('top')) > parseInt(block2.css('top'))){
+					block2.insertAfter(block1);
+				}else if (parseInt(block1.css('top')) < parseInt(block2.css('top'))){
+					block1.insertAfter(block2);
 				}else{
-					compare2 = parseInt(dayblock.children('div:not(.noshow):nth-child('+(j+1)+')').css('top'));
-					if(moving>=compare1&&moving<compare2){
-						mpiece.insertAfter(cpiece);
-						continue;
-					}
+					/* this will get triggered multiple times, as the .each loop will loop though the same block multiple times */
 				}
-			}
-		}
-		
-		dayblock.children('div.noshow').each(function(){
-			$(this).insertAfter(dayblock.children('div').last());
+			})
 		});
 	});
 	resize_blocks();
 }
 
 function resize_blocks(){
-	$('#id_scaffold_overlay_carousel').children('div').each(function(){
+	$('div#id_table_scaffold_overlay').children('div').each(function(){
 		var max_concurr = 1;
 		var dayblock = $(this);
 		
@@ -1617,41 +1446,33 @@ function resize_blocks(){
 				max_concurr=timeslot_concurr;
 			}
 		});
-		dayblock.children('div:not(.noshow)').css('width',90/max_concurr+'%');
+		dayblock.children('div:not(.noshow)').css('width',100/max_concurr+'%');
 	});	
 	stagger_blocks();
 }
 
 function stagger_blocks(){
-	$('div.lessonblock').css('left','0px');
-	$('#id_scaffold_overlay_carousel').children('div').each(function(){
+	$('div.lessonblock').css('left','1px');
+	$('div#id_table_scaffold_overlay').children('div').each(function(){
 		var dayblock = $(this);
-		var flag;
-		do{
-			flag = false;
-			if(dayblock.children('div:not(.noshow)').length>1){
-				for (i = 2;i<dayblock.children('div:not(.noshow)').length+1;i++){
-					for (j=1;j<i;j++){
-						
-						var mpiece = dayblock.children('div:nth-child('+i+')');
-						var mtop = parseInt(mpiece.css('top'));
-						var mwidth = parseInt(mpiece.css('width'));
-						var mleft = parseInt(mpiece.css('left'));
-						
-						var cpiece = dayblock.children('div:nth-child('+j+')');
-						var ctop = parseInt(cpiece.css('top'));
-						var cbottom = ctop + parseInt(cpiece.css('height'));
-						var cleft = parseInt(cpiece.css('left'));
-						
-						
-						if(mtop>=ctop&&mtop<cbottom&&cleft==mleft){
-							flag = true;
-							mpiece.css('left',mleft+mwidth);
-						}
-					}
+		dayblock.children('div:not(.noshow)').each(function(){
+			var focusblock = $(this);
+			var focusblocktop = parseInt(focusblock.css('top'));
+			var focusblockwidth = parseInt(focusblock.css('width'));
+			var focusblockbottom = focusblocktop + parseInt(focusblock.css('height'));
+			var focusblockleft = 0;
+			dayblock.children('div').each(function(){
+				var compareblock = $(this);
+				var compareblockleft = parseInt(compareblock.css('left'));
+				var compareblocktop = parseInt(compareblock.css('top'));
+				var compareblockbottom = compareblocktop+parseInt(compareblock.css('height'));
+				
+				if ((focusblock!=compareblock)&&(compareblockleft==focusblockleft)&&((focusblocktop>=compareblocktop)&&(focusblocktop<compareblockbottom)||(focusblocktop<compareblocktop)&&(focusblockbottom>compareblocktop))){
+					focusblockleft += focusblockwidth;
 				}
-			}
-		}while(flag);
+			});
+			focusblock.css('left',focusblockleft);
+		});
 	});
 }
 
@@ -1661,28 +1482,28 @@ function cvt_day_time_to_pos_height(day, starttime, endtime){
 	var height;
 	switch (day){
 		case 'Mon':
-			pos = $('#id_scaffold_overlay_carousel').children('div:nth-child(1)');
+			pos = $('#id_table_scaffold_overlay').children('div:nth-child(2)');
 		break;
 		case 'Tue':
-			pos = $('#id_scaffold_overlay_carousel').children('div:nth-child(2)');
+			pos = $('#id_table_scaffold_overlay').children('div:nth-child(3)');
 		break;
 		case 'Wed':
-			pos = $('#id_scaffold_overlay_carousel').children('div:nth-child(3)');
+			pos = $('#id_table_scaffold_overlay').children('div:nth-child(4)');
 		break;
 		case 'Thu':
-			pos = $('#id_scaffold_overlay_carousel').children('div:nth-child(4)');
+			pos = $('#id_table_scaffold_overlay').children('div:nth-child(5)');
 		break;
 		case 'Fri':
-			pos = $('#id_scaffold_overlay_carousel').children('div:nth-child(5)');
+			pos = $('#id_table_scaffold_overlay').children('div:nth-child(6)');
 		break;
 		case 'Sat':
-			pos = $('#id_scaffold_overlay_carousel').children('div:nth-child(6)');
+			pos = $('#id_table_scaffold_overlay').children('div:nth-child(7)');
 		break;
 		case 'Sun':
-			pos = $('#id_scaffold_overlay_carousel').children('div:nth-child(7)');
+			pos = $('#id_table_scaffold_overlay').children('div:nth-child(8)');
 		break;
 		default:
-			pos = $('#id_scaffold_overlay_carousel').children('div:nth-child(1)');
+			pos = $('#id_table_scaffold_overlay').children('div:nth-child(1)');
 		break;
 	}
 	var nthblock = starttime.split(':')[0]-8 < 0 ? 0 : starttime.split(':')[0]-8 > 14 ? 14 : starttime.split(':')[0]-8 ;
@@ -1708,7 +1529,7 @@ function cvt_day_time_to_pos_height(day, starttime, endtime){
 
 //converting height to time
 function cvt_height_duration(i){
-	return Math.round(parseInt(i)/parseInt($('#id_table_scaffold tbody tr:nth-child(2)').css('height')))/2;
+	return Math.round(parseInt(i)/32)/2;
 }
 
 //converting decimal to time
