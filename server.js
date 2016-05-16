@@ -24,9 +24,10 @@ var connection = mysql.createConnection({
 
 var dbname = 'timetable';
 var connection = mysql.createConnection({
-	host	:'127.7.51.130', 
-	user	:'adminsrCNFym',
-	password	:'9gPQRXKgSdbH',
+	host	:process.env.OPENSHIFT_MYSQL_DB_HOST,
+	port	:process.env.OPENSHIFT_MYSQL_DB_PORT,
+	user	:process.env.OPENSHIFT_MYSQL_DB_USERNAME,
+	password	:process.env.OPENSHIFT_MYSQL_DB_PASSWORD,
 	database	:dbname
 });
 //*/
