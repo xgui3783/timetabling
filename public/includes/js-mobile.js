@@ -1,4 +1,10 @@
 
+
+var socket = io.connect('http://timetable-pandamakes.rhcloud.com:8000/',function(){
+	//'forceNew':true,
+});
+//*/
+/*
 var socket = io.connect('http://timetable-gened.rhcloud.com:8000/',function(){
 	//'forceNew':true,
 });
@@ -186,6 +192,7 @@ $(document).ready(function(){
 	
 	$('#modal_edit_tutor')
 	.on('shown.bs.modal',function(){
+		$('#modal_edit_tutor .btn-success').prop('disabled',false);
 		$('#modal_edit_tutor .btn-success').off('tap').on('tap',function(){
 			$('#modal_edit_tutor .btn-success').prop('disabled',true);
 			var json = {
