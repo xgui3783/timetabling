@@ -1,10 +1,10 @@
 
-
+/*
 var socket = io.connect('http://timetable-pandamakes.rhcloud.com:8000/',function(){
 	//'forceNew':true,
 });
 //*/
-/*
+
 var socket = io.connect('http://timetable-gened.rhcloud.com:8000/',function(){
 	//'forceNew':true,
 });
@@ -1309,6 +1309,7 @@ function save_block(){
 	}
 	
 	if (!flag){
+		$('#save_button').prop('disabled',false);
 		return false; 
 	}
 	
@@ -1461,6 +1462,8 @@ function call_editblock(){
 }
 
 function dismiss_editblock(){
+	
+	$('#save_button').prop('disabled',false);
 	
 	$('#id_screen_container').animate({'opacity':'0.0'},400,function(){
 		$('#id_screen_container').css('display','none');

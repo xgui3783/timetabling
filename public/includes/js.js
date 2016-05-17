@@ -1242,6 +1242,7 @@ function save_block(){
 	}
 	
 	if (!flag){
+		$('#save_button').prop('disabled',false);
 		return false; 
 	}
 	
@@ -1539,6 +1540,8 @@ function call_editblock(){
 }
 
 function dismiss_editblock(){
+	
+	$('#save_button').prop('disabled',false);
 	
 	$('#id_screen').animate({'opacity':'0.0'},200);
 	$('#id_edit_block_popup').animate({'opacity':'0.0'},400,function(){
