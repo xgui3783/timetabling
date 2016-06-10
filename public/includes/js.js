@@ -1126,6 +1126,10 @@ function filter_location(i){
 		return 'NoLocationAssigned';
 	}
 	
+	if(i.toLowerCase()=='berala'){
+		return 'Berala';
+	}
+	
 	if(i.length==1){
 		if($.isNumeric(i)){
 			return 'Rm'+i;
