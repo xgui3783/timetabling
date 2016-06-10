@@ -290,7 +290,6 @@ $(document).ready(function(){
 		$('.modal').modal('hide');
 	});
 	
-	
 	socket.on('server_to_client_update_failed',function(err){
 		//failure state here
 		$('#modal_warning .modal-title').html('Warning');
