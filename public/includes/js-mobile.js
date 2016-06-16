@@ -1558,12 +1558,12 @@ function stagger_blocks(){
 	$('div.lessonblock').css('left','0px');
 	$('#id_scaffold_overlay_carousel').children('div').each(function(){
 		var dayblock = $(this);
-		var flag;
-		do{
-			flag = false;
-			if(dayblock.children('div:not(.noshow)').length>1){
-				for (i = 2;i<dayblock.children('div:not(.noshow)').length+1;i++){
-					for (j=1;j<i;j++){
+		if(dayblock.children('div:not(.noshow)').length>1){
+			for (var i = 2;i<dayblock.children('div:not(.noshow)').length+1;i++){
+				var flag;
+				do{
+					flag = false;
+					for (var j=1;j<i;j++){
 						
 						var mpiece = dayblock.children('div:nth-child('+i+')');
 						var mtop = parseInt(mpiece.css('top'));
@@ -1575,15 +1575,15 @@ function stagger_blocks(){
 						var cbottom = ctop + parseInt(cpiece.css('height'));
 						var cleft = parseInt(cpiece.css('left'));
 						
-						
+						/* detect collision */
 						if(mtop>=ctop&&mtop<cbottom&&cleft==mleft){
 							flag = true;
 							mpiece.css('left',mleft+mwidth);
-						}
+						}	
 					}
-				}
+				}while(flag);
 			}
-		}while(flag);
+		}
 	});
 }
 
