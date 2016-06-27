@@ -4,12 +4,12 @@ var socket = io.connect('http://timetable-pandamakes.rhcloud.com:8000/',function
 	//'forceNew':true,
 });
 //*/
-
+/*
 var socket = io.connect('http://timetable-gened.rhcloud.com:8000/',function(){
 	//'forceNew':true,
 });
-//*/
-/*var socket = io();//*/
+*/
+var socket = io();
 $(document).ready(function(){
 	
 	/* small device has no need for hoverinfo */
@@ -293,20 +293,109 @@ $(document).ready(function(){
 	socket.on('server_to_client_update_failed',function(err){
 		//failure state here
 		$('#modal_warning .modal-title').html('Warning');
-		$('#modal_warning .modal-body').html(err);
+		$('#modal_warning .modal-body').html(escapeHTML(err));
 		$('#modal_warning').modal('show');
 	});
 });
 
+
+function report_summary_flip_page(){
+	/* addClass hidden to all that has a different view date */
+	var bookmark = 0;
+	var flag_lastpage = false;
+	var flag_firstpage = false;
+	var cached_date = $('#modal_report_summary_content tr:nth-child(2)').children('td').last().html();
+	
+	for(var i = 1;i<$('#modal_report_summary_content tr').length;i++){
+		if($('#modal_report_summary_content tr').eq(i).children('td').last().html()!=cached_date){
+			cached_date = $('#modal_report_summary_content tr').eq(i).children('td').last().html();
+			bookmark--;
+		}
+		
+		if(bookmark==$('#pagination').val()){
+			$('#modal_report_summary_content tr').eq(i).removeClass('hidden');
+			$('#modal_report_summary_date').html('Retrieved on: '+cached_date.split('T')[0]+' '+cached_date.split('T')[1].split('.')[0]);
+			
+			if(i==1){
+				flag_firstpage=true;
+			}else if(i==$('#modal_report_summary_content tr').length-1){
+				flag_lastpage=true;
+			}
+			
+		}else{
+			$('#modal_report_summary_content tr').eq(i).addClass('hidden');
+		}
+	}
+	
+	$('.modal_report_pagination').removeClass('disabled');
+	if(flag_firstpage){
+		$('.modal_report_pagination').last().addClass('disabled');
+	}
+	
+	if(flag_lastpage){
+		$('.modal_report_pagination').first().addClass('disabled');
+	}
+}
 
 function tutor_lvl2_binding(){
 	
 	/* show buttons */
 	$('#nav_students').css('display','block');
 	$('#popup_addtutor').css('display','block');
+	$('#modal_report_btn_view').removeClass('hidden');
 	
 	/* bind functions */
 	tutor_lvl1_binding();
+	
+	/* bind view */
+	$('#modal_report_btn_view').off('click').click(function(){
+		socket.emit('view report',0,function(o){
+			if(o.res=='ok'){
+				$('#modal_report_summary').modal('show');
+				$('#modal_report_summary_content tr:not(:first-child)').remove();
+				
+				for(var i = 0;i<o.data.length;i++){
+					$('#modal_report_summary_content').removeClass('hidden');
+					$('#modal_report_summary_content').append(
+						'<tr>'+
+							'<td>'+escapeHTML(o.data[i].date)+'</td>'+
+							'<td>'+escapeHTML(o.data[i].tutorname)+'</td>'+
+							'<td>'+escapeHTML(o.data[i].students)+'</td>'+
+							'<td>'+escapeHTML(o.data[i].notes)+'</td>'+
+							'<td>'+o.data[i].created.split('T')[0]+' '+o.data[i].created.split('T')[1].split('.')[0]+'</td>'+
+							'<td class = "hidden">'+o.data[i].viewed+'</td>'+
+						'</tr>');
+				}
+				
+				$('.modal_report_pagination').off('click').click(function(){
+					
+					if($(this).hasClass('disabled')){
+						return false;
+					}
+					
+					var page = Number($('#pagination').val());
+					
+					if($(this).index()==0){
+						$('#pagination').val(page-1);
+					}else{
+						$('#pagination').val(page+1);
+					}
+					
+					$('#modal_report_summary_content,#modal_report_summary_date').animate({'opacity':'0.0'},200,function(){
+						report_summary_flip_page();
+						$('#modal_report_summary_content,#modal_report_summary_date').animate({'opacity':'1.0'},200);
+					})
+				})
+				
+				report_summary_flip_page();
+				
+			}else if(o.res=='rejected'){
+				$('#modal_warning .modal-title').html('Warning');
+				$('#modal_warning .modal-body').html('You do not have the admin level to access this function.');
+				$('#modal_warning').modal('show');
+			}
+		})
+	});
 	
 	/* bind add new tutor button at add class block */
 	$('#popup_addtutor').on('tap',function(){
@@ -361,9 +450,49 @@ function tutor_lvl1_binding(){
 	
 	/* show buttons */
 	$('#nav_profiles').css('display','block');
+	$('#nav_report').css('display','block');
 	$('#id_navbar_ttcontrol li').css('display','block');
 	
 	/* binding functions */
+	
+	/* bind clicking report income */
+	$('#nav_report').off('click').click(function(){
+		$('#modal_report').modal('show');
+	});
+	
+	$('#modal_report').on('shown.bs.modal',function(){
+		$(this).find('input').focus();
+	});
+	
+	$('#modal_report .btn-success').off('click').click(function(){
+		
+		/* check if required fields are empty or not */
+		$('#modal_report .required').each(function(){
+			if($('#'+$(this).attr('for')).val().replace(/ /g,'')==''){
+				$(this).parent().addClass('has-error');
+			}else{
+				$(this).parent().removeClass('has-error');
+			}
+		})
+		
+		if($('#modal_report .has-error').length>0){
+			return false;
+		}else{
+			var json = {
+				'date'		: $('#id_report_date').val(),
+				'students'	: $('#id_report_students').val(),
+				'notes'		: $('#id_report_notes').val()
+			}
+			socket.emit('report income',json,function(o){
+				if(o=='submitted'){
+					$('#modal_report').modal('hide');
+					$('#modal_warning .modal-title').html('Info');
+					$('#modal_warning .modal-body').html('Timesheet Submitted');
+					$('#modal_warning').modal('show');
+				}
+			})
+		}
+	})
 	
 	/* bind clicking tutor profile button */
 	$('#nav_profiles').on('tap',function(){
@@ -546,7 +675,7 @@ function tutor_lvl1_binding(){
 	
 	/* key functionality */
 	socket.on('server_to_client_tablename',function(tablename){
-		$('#nav_name').html(tablename.substring(3));
+		$('#nav_name').html(escapeHTML(tablename.substring(3)));
 	});
 	
 	socket.on('add_lesson_block',function(lessonblock_json){
@@ -786,7 +915,7 @@ function tutor_lvl1_binding(){
 		socket.emit('tt_load',function(jsonO){
 			populate_tt_modal(jsonO);
 			$('#modal_tt').children('div').each(function(){
-				$(this).append('<div class = "col-xs-2"><button type="button" class="delete_tt_button btn btn-danger" id="id_button_tt_delete_'+$(this).children('div:first-child').html()+'">Delete</button></div>');
+				$(this).append('<div class = "col-xs-2"><button type="button" class="delete_tt_button btn btn-danger" id="id_button_tt_delete_'+escapeHTML($(this).children('div:first-child').html())+'">Delete</button></div>');
 			});
 			$('.modal_load_tt_unit').off('click').click(function(){
 				var jsonO = {};
@@ -825,9 +954,9 @@ function tutor_lvl1_binding(){
 	
 	socket.on('append_tutor_slot',function(o){
 		if(socket.admin==0&&socket.name==o){
-			$('#id_edit_block_popup #id_tutorname').append('<option id = "id_tutorname_'+o.replace(/ /g,'')+'">'+o+'</option>');
+			$('#id_edit_block_popup #id_tutorname').append('<option id = "id_tutorname_'+escapeHTML(o.replace(/ /g,''))+'">'+escapeHTML(o)+'</option>');
 		}else if (socket.admin==1||socket.admin==2){
-			$('#id_edit_block_popup #id_tutorname').append('<option id = "id_tutorname_'+o.replace(/ /g,'')+'">'+o+'</option>');			
+			$('#id_edit_block_popup #id_tutorname').append('<option id = "id_tutorname_'+escapeHTML(o.replace(/ /g,''))+'">'+escapeHTML(o)+'</option>');			
 		}
 	});
 	
@@ -877,11 +1006,27 @@ function check_same_pswd(){
 	}
 }
 
+var entityMap = {
+	"&": "&amp;",
+	"<": "&lt;",
+	">": "&gt;",
+	'"': '&quot;',
+	"'": '&#39;',
+	"/": '&#x2F;'
+};
+
+function escapeHTML(s){
+	/* http://stackoverflow.com/a/12034334/6059235 */
+    return String(s).replace(/[&<>"'\/]/g, function (t) {
+      return entityMap[t];
+    });	
+}
+
 function append_tutor_entry(json){	
 	$('#modal_tutor_row').append('<div class = "col-xs-12 modal_tutor_unit" id = "'+json.hashed_id+'">'+
-	'<div class = "col-xs-7 col-sm-7 col-md-3">'+json.name+'</div>'+
-	'<div class = "hidden-xs hiddem-sm visible-md-3 visible-lg-3">'+json.mobileno+'</div>'+
-	'<div class = "hidden-xs hidden-sm visible-md-4 visible-lg-4">'+json.email+'</div>'+
+	'<div class = "col-xs-7 col-sm-7 col-md-3">'+escapeHTML(json.name)+'</div>'+
+	'<div class = "hidden-xs hiddem-sm visible-md-3 visible-lg-3">'+escapeHTML(json.mobileno)+'</div>'+
+	'<div class = "hidden-xs hidden-sm visible-md-4 visible-lg-4">'+escapeHTML(json.email)+'</div>'+
 	'<div class = "col-xs-5 col-sm-5 col-md-2"><button class = "btn btn-danger">Delete</button></div>'+
 	'</div>');
 	
@@ -1151,7 +1296,7 @@ function populate_modal_filter_class(i){
 		}
 	})
 	if(flag){
-		$('#panel_class').children('div.panel-body').append('<button type = "button" class = "filter_toggle btn btn-default" id = "id_button_'+classname+'">'+classname+'</button>');
+		$('#panel_class').children('div.panel-body').append('<button type = "button" class = "filter_toggle btn btn-default" id = "id_button_'+escapeHTML(classname)+'">'+escapeHTML(classname)+'</button>');
 	}
 }
 
@@ -1168,7 +1313,7 @@ function populate_modal_filter_tutor(i){
 		}
 	})
 	if(flag){
-		$('#panel_tutor').children('div.panel-body').append('<button type = "button" class = "filter_toggle btn btn-default" id = "id_button_'+tutorname.replace(/ /g,'')+'">'+tutorname+'</button>');
+		$('#panel_tutor').children('div.panel-body').append('<button type = "button" class = "filter_toggle btn btn-default" id = "id_button_'+escapeHTML(tutorname.replace(/ /g,''))+'">'+escapeHTML(tutorname)+'</button>');
 	}
 }
 
@@ -1181,7 +1326,7 @@ function populate_modal_filter_location(i){
 		}
 	})
 	if(flag){
-		$('#panel_location').children('div.panel-body').append('<button type = "button" class = "filter_toggle btn btn-default" id = "id_button_'+locationname.replace(/ /g,'')+'">'+locationname+'</button>');
+		$('#panel_location').children('div.panel-body').append('<button type = "button" class = "filter_toggle btn btn-default" id = "id_button_'+escapeHTML(locationname.replace(/ /g,''))+'">'+escapeHTML(locationname)+'</button>');
 	}	
 }
 
@@ -1236,8 +1381,8 @@ function populate_tt_modal(jsonO){
 	for (i=0;i<Object.keys(jsonO).length;i++){
 		$('#modal_tt').append('<div id ="modal_load_tt_unit_'+i+'" class = "col-xs-12 modal_load_tt_unit'+ (jsonO[i][0]==$('#nav_name').html() ? ' activett' : '' )+'"></div>');
 		$('#modal_load_tt_unit_'+i)
-		.append('<div class = "col-xs-7 col-sm-7 col-md-3">'+jsonO[i][0]+'</div>')
-		.append('<div class = "hidden-xs hidden-sm visible-md-7 visible-lg-7">'+jsonO[i][1].split('T')[0]+'</div>')
+		.append('<div class = "col-xs-7 col-sm-7 col-md-3">'+escapeHTML(jsonO[i][0])+'</div>')
+		.append('<div class = "hidden-xs hidden-sm visible-md-7 visible-lg-7">'+escapeHTML(jsonO[i][1].split('T')[0])+'</div>')
 	}
 }
 
@@ -1249,7 +1394,7 @@ function add_lesson_block(jsonObj){
 	$('.activeblock').append('<span class = "lessonblock_classname"></span><span class = "lessonblock_tutorname"></span><span class = "lessonblock_location"></span><span class = "lessonblock_day"></span><span class = "lessonblock_starttime"></span><span class = "lessonblock_endtime"></span><span class = "lessonblock_students"></span><span class = "lessonblock_notes"></span>');
 	
 	$('.activeblock span').each(function(){
-		$(this).html(eval('jsonObj.'+$(this).attr('class').substring(12)));
+		$(this).html(escapeHTML(eval('jsonObj.'+$(this).attr('class').substring(12))));
 		});
 	
 	$('.activeblock').attr('id',jsonObj.hashed_id);
@@ -1322,7 +1467,7 @@ function save_block(){
 	$('.activeblock').empty().append('<span class = "lessonblock_classname"></span><span class = "lessonblock_tutorname"></span><span class = "lessonblock_location"></span><span class = "lessonblock_day"></span><span class = "lessonblock_starttime"></span><span class = "lessonblock_endtime"></span><span class = "lessonblock_students"></span><span class = "lessonblock_notes"></span>');
 	$('.activeblock span').each(function(){
 		var attri = $(this).attr('class').substring(12);
-		$(this).html($('#id_'+$(this).attr('class').substring(12)).val());
+		$(this).html(escapeHTML($('#id_'+$(this).attr('class').substring(12)).val()));
 		var value = $(this).html();
 		item[attri] = value;
 	});

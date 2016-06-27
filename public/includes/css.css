@@ -4,13 +4,29 @@ body
 overflow-x:hidden;
 }
 
+.required::after
+{
+content:'*';
+color:red;
+}
+
+#modal_report_summary_dialog
+{
+width:100%;
+}
+
+#modal_report_summary_content td
+{
+text-align:left;
+}
+
 /* hidden for low level tutors/students */
 
 #id_navbar_ttcontrol li{
 	display:none;
 }
 
-#nav_students,#nav_profiles{
+#nav_students,#nav_profiles,#nav_report{
 	display:none;
 }
 

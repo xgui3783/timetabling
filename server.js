@@ -9,30 +9,48 @@ var io = require('socket.io').listen(server);
 var mysql = require('mysql');
 var sha256 = require('js-sha256');
 
-/*
-var dbname = 'timetable';
-var connection = mysql.createConnection({
-	host	:'localhost', 
-	user	:'root',
-	password	:'',
-	database	:dbname
-});
-
-
-/* process.env.OPENSHIFT_MYSQL_DB_HOST, */
-
 
 var dbname = 'timetable';
+
+app.set('mysqlhost',process.env.OPENSHIFT_MYSQL_DB_HOST||'localhost');
+app.set('mysqluser',process.env.OPENSHIFT_MYSQL_DB_USERNAME||'root');
+app.set('mysqlpswd',process.env.OPENSHIFT_MYSQL_DB_PASSWORD||'');
 var connection = mysql.createConnection({
-	host	:process.env.OPENSHIFT_MYSQL_DB_HOST,
-	port	:process.env.OPENSHIFT_MYSQL_DB_PORT,
-	user	:process.env.OPENSHIFT_MYSQL_DB_USERNAME,
-	password	:process.env.OPENSHIFT_MYSQL_DB_PASSWORD,
-	database	:dbname
+	host	:app.get('mysqlhost'),
+	user	:app.get('mysqluser'),
+	password	:app.get('mysqlpswd'),
+	database	:dbname,
 });
-//*/
 
 io.on('connection',function(socket){
+	
+	/* make the tutor report income table */
+	connection.query('SELECT TABLE_NAME FROM information_schema.tables WHERE TABLE_SCHEMA = "' + dbname + '" AND TABLE_NAME = "tutor_report_income"',function(e,rows){
+		if(e){
+			socket.emit('server_to_client_update_failed', 'Err147 db failed. Likely due to database is down. Trace:'+e);		
+		}else{
+			if(rows.length==0){
+				connection.query(
+					'CREATE TABLE tutor_report_income ('+
+					'id int(4) NOT NULL AUTO_INCREMENT,'+
+					
+					'date varchar(64) NOT NULL,'+
+					'students varchar(8192) NOT NULL,'+
+					'notes varchar(64),'+
+					
+					'tutorname varchar(64) NOT NULL,'+
+					'created TIMESTAMP NOT NULL,'+
+					'viewed TIMESTAMP,'+
+					
+					'PRIMARY KEY(id));',function(e2,r2){
+						if(e2){
+							socket.emit('server_to_client_update_failed', 'Err163 db failed. Likely due to database is down. Trace:'+e2);		
+						}
+					})
+			}
+		}
+	})
+	
 	/* if a user logs in without a table called tutor_db */
 	connection.query('SELECT TABLE_NAME FROM information_schema.tables WHERE TABLE_SCHEMA = "' + dbname + '" AND TABLE_NAME = "tutor_db"',function(e,rows){
 		if(e){
@@ -151,6 +169,15 @@ io.on('connection',function(socket){
 		})
 	});
 	
+	socket.on('report income',function(i,callback){
+		connection.query('INSERT INTO tutor_report_income (date,students,notes,tutorname) VALUES (?,?,?,?);',[i.date,i.students,i.notes,socket.name],function(e,r){
+			if(e){
+				socket.emit('server_to_client_update_failed', 'Err175 db failed. Likely due to database is down. Trace:'+e);		
+			}else{
+				callback('submitted');
+			}
+		})
+	});
 	
 	socket.on('add_new_tutor',function(i,callback){
 		var hashed_id = i.now;
@@ -170,6 +197,31 @@ io.on('connection',function(socket){
 			}
 		})
 	});
+	
+	socket.on('view report',function(i,callback){
+		if(socket.admin!=2){
+			var json = {'res':'rejected'}
+			callback(json);
+		}else{
+			connection.query('UPDATE tutor_report_income SET viewed = CURRENT_TIMESTAMP WHERE viewed = 0;',function(e,r){
+				if(e){
+					socket.emit('server_to_client_update_failed', 'Err208 db failed. Likely due to database is down. Trace:'+e);
+				}else{
+					/* in the future, maybe implement selecting only the essential rows. For now, all of the data will be dumped and rendered. But only the essential one's are shown */
+					connection.query('SELECT date, tutorname, students, notes, created, viewed FROM tutor_report_income ORDER BY viewed DESC',function(e2,r2){
+						if(e2){
+							socket.emit('server_to_client_update_failed', 'Err213 db failed. Likely due to database is down. Trace:'+e2);
+						}else{
+							var json = {
+								'res':'ok',
+								'data':r2}
+							callback(json);
+						}
+					})
+				}
+			})
+		}
+	})
 	
 	socket.on('update_existing_tutor',function(i,callback){
 		var update_json = {
