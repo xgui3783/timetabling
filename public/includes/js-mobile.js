@@ -347,8 +347,17 @@ function tutor_lvl2_binding(){
 	/* bind functions */
 	tutor_lvl1_binding();
 	
+	/* bind on modal report summary hidden */
+	$('#modal_report_summary').on('hidden.bs.modal',function(){
+		$('#modal_report_btn_view').removeClass('disabled');
+	})
+	
 	/* bind view */
 	$('#modal_report_btn_view').off('click').click(function(){
+		if($(this).hasClass('disabled')){
+			return false;
+		}
+		$(this).addClass('disabled');
 		socket.emit('view report',0,function(o){
 			if(o.res=='ok'){
 				$('#modal_report_summary').modal('show');
@@ -460,9 +469,13 @@ function tutor_lvl1_binding(){
 		$('#modal_report').modal('show');
 	});
 	
-	$('#modal_report').on('shown.bs.modal',function(){
-		$(this).find('input').focus();
-	});
+	$('#modal_report')
+		.on('shown.bs.modal',function(){
+			$(this).find('input').first().focus();
+		})
+		.on('hidden.bs.modal',function(){
+			$(this).find('input,textarea').val('');
+		});
 	
 	$('#modal_report .btn-success').off('click').click(function(){
 		
