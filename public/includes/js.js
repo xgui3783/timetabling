@@ -294,42 +294,49 @@ function escapeHTML(s){
     });	
 }
 
-function report_summary_flip_page(){
+function report_summary_flip_page(input){
 	/* addClass hidden to all that has a different view date */
-	var bookmark = 0;
+	var bookmark;
 	var flag_lastpage = false;
 	var flag_firstpage = false;
-	var cached_date = $('#modal_report_summary_content tr:nth-child(2)').children('td').last().html();
+	
+	var refdate = new Date('2016-06-27'); /* reference day, monday */
+	var thisdate;
+	var daydiff;
+	var freq = 14; /* frequence. 14 for fornightly reporting; 7 for weekly reporting */
+	
+	var today = new Date(new Date().toJSON().split('T')[0]);
+	var freqnums = Math.ceil((today - refdate)/(1000*60*60*24)/freq);
+	
+	/* checks if btn has class disabled. if true, report summary flip page was called after arrow btn was clicked */
+	
+	if(input=='start'){
+		$('#pagination').val(freqnums-1);
+	}
 	
 	for(var i = 1;i<$('#modal_report_summary_content tr').length;i++){
-		if($('#modal_report_summary_content tr').eq(i).children('td').last().html()!=cached_date){
-			cached_date = $('#modal_report_summary_content tr').eq(i).children('td').last().html();
-			bookmark--;
-		}
+		
+		/* date of submission */
+		thisdate = new Date($('#modal_report_summary_content tr').eq(i).children('td:not(.hidden)').last().html().split(' ')[0]);
+		
+		/* days between date of submission and reference date */
+		daydiff = (thisdate - refdate)/(1000*60*60*24);
+		
+		/* page ? */
+		bookmark = Math.floor(daydiff/freq);
 		
 		if(bookmark==$('#pagination').val()){
 			$('#modal_report_summary_content tr').eq(i).removeClass('hidden');
-			$('#modal_report_summary_date').html('Retrieved on: '+cached_date.split('T')[0]+' '+cached_date.split('T')[1].split('.')[0]);
-			
-			if(i==1){
-				flag_firstpage=true;
-			}else if(i==$('#modal_report_summary_content tr').length-1){
-				flag_lastpage=true;
-			}
-			
 		}else{
 			$('#modal_report_summary_content tr').eq(i).addClass('hidden');
 		}
 	}
 	
-	$('.modal_report_pagination').removeClass('disabled');
-	if(flag_firstpage){
-		$('.modal_report_pagination').last().addClass('disabled');
-	}
-	
-	if(flag_lastpage){
-		$('.modal_report_pagination').first().addClass('disabled');
-	}
+	/* set the title of the report */
+	var pagination = $('#pagination').val();
+	var startdate = new Date(refdate.setDate(refdate.getDate() + Number((pagination)*freq)));
+	var enddate = new Date(refdate.setDate(refdate.getDate() + freq -1));
+	$('#modal_report_summary_date').html('Timesheet submitted between <strong>' + startdate.toJSON().split('T')[0] + '</strong> and <strong>'+enddate.toJSON().split('T')[0] + '</strong>');
 }
 
 function tutor_lvl2_binding(){
@@ -352,7 +359,7 @@ function tutor_lvl2_binding(){
 		if($(this).hasClass('disabled')){
 			return false;
 		}
-		$(this).addClass('disabled');
+		$('#modal_report_btn_view').addClass('disabled');
 		socket.emit('view report',0,function(o){
 			if(o.res=='ok'){
 				$('#modal_report_summary').modal('show');
@@ -367,7 +374,7 @@ function tutor_lvl2_binding(){
 							'<td>'+escapeHTML(o.data[i].students)+'</td>'+
 							'<td>'+escapeHTML(o.data[i].notes)+'</td>'+
 							'<td>'+o.data[i].created.split('T')[0]+' '+o.data[i].created.split('T')[1].split('.')[0]+'</td>'+
-							'<td class = "hidden">'+o.data[i].viewed+'</td>'+
+							'<td class = "hidden">'+/*o.data[i].viewed+*/'</td>'+
 						'</tr>');
 				}
 				
@@ -377,6 +384,8 @@ function tutor_lvl2_binding(){
 						return false;
 					}
 					
+					$('.modal_report_pagination').addClass('disabled');
+					
 					var page = Number($('#pagination').val());
 					
 					if($(this).index()==0){
@@ -385,13 +394,15 @@ function tutor_lvl2_binding(){
 						$('#pagination').val(page+1);
 					}
 					
-					$('#modal_report_summary_content,#modal_report_summary_date').animate({'opacity':'0.0'},200,function(){
-						report_summary_flip_page();
-						$('#modal_report_summary_content,#modal_report_summary_date').animate({'opacity':'1.0'},200);
+					$('#modal_report_summary_content,#modal_report_summary_date').animate({'opacity':'0.0'},300,function(){
+						report_summary_flip_page(null);
+						$('.modal_report_pagination').removeClass('disabled');
+						$('#modal_report_summary_content,#modal_report_summary_date').animate({'opacity':'1.0'},300);
 					})
 				})
 				
-				report_summary_flip_page();
+				report_summary_flip_page('start');
+				$('.modal_report_pagination').removeClass('disabled');
 				
 			}else if(o.res=='rejected'){
 				$('#modal_warning .modal-title').html('Warning');
