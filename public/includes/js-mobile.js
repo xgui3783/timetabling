@@ -1,14 +1,4 @@
 
-/*
-var socket = io.connect('http://timetable-pandamakes.rhcloud.com:8000/',function(){
-	//'forceNew':true,
-});
-//*/
-/*
-var socket = io.connect('http://timetable-gened.rhcloud.com:8000/',function(){
-	//'forceNew':true,
-});
-*/
 var socket = io();
 $(document).ready(function(){
 	
@@ -429,7 +419,7 @@ function tutor_lvl2_binding(){
 	});
 	
 	/* bind tutors profile button */
-	$('#nav_profiles').off('click').click(function(){
+	$('#nav_profiles').off('tap').tap(function(){
 		$('#modal_tutor').modal('show');
 		$('#modal_tutor_row').empty();
 		socket.emit('load_profiles','me',function(json){
@@ -515,7 +505,7 @@ function tutor_lvl1_binding(){
 	
 	/* bind clicking tutor profile button */
 	$('#nav_profiles').on('tap',function(){
-		
+		console.log('nav profile lvl1 bind')
 		history.pushState(null,null,'/');
 		socket.emit('edit_tutor',$('#id_tutormodal_hashed_id').val(),function(json){
 			
